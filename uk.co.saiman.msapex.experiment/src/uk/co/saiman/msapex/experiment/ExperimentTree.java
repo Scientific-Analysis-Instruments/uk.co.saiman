@@ -28,25 +28,34 @@
 package uk.co.saiman.msapex.experiment;
 
 import static java.util.stream.Collectors.toList;
+import static uk.co.saiman.experiment.WorkspaceEventState.COMPLETED;
 
-import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 
-import uk.co.saiman.eclipse.ui.Invalidator;
-import uk.co.saiman.eclipse.ui.ListItems;
+import uk.co.saiman.eclipse.ui.ChildrenService;
+import uk.co.saiman.experiment.ExperimentNode;
 import uk.co.saiman.experiment.Workspace;
-import uk.co.saiman.msapex.experiment.treecontributions.ExperimentNodeCell;
 
 public class ExperimentTree {
-  public static final String ID = "uk.co.saiman.experiment.tree";
+  public static final String ID = "uk.co.saiman.msapex.experiment.tree";
 
-  @PostConstruct
-  void initialize(Workspace workspace, Invalidator invalidator, ListItems children) {
-    children.addItems(ExperimentNodeCell.ID, workspace.getExperiments().collect(toList()));
+  @Inject
+  private Workspace workspace;
 
+  @Inject
+  void initialize(ChildrenService children) {
     workspace
-        .events()
-        .weakReference(this)
-        .filter(e -> !e.message().getNode().getParent().isPresent())
-        .observe(m -> invalidator.invalidate());
+        .events(COMPLETED)
+        .filter(e -> !e.getNode().getParent().isPresent())
+        .take(1)
+        .observe(m -> {
+          children.invalidate();
+        });
+
+    children
+        .setItems(
+            ExperimentNodeCell.ID,
+            ExperimentNode.class,
+            workspace.getExperiments().collect(toList()));
   }
 }

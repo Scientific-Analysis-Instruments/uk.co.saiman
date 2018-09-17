@@ -29,9 +29,8 @@ package uk.co.saiman.experiment.processing;
 
 import uk.co.saiman.data.function.processing.DataProcessor;
 import uk.co.saiman.experiment.state.StateMap;
-import uk.co.saiman.reflection.token.TypedReference;
 
-public interface Processor<T extends Processor<T>> {
+public interface Processor {
   String PROCESSOR_ID_KEY = "processorId";
 
   default String getId() {
@@ -42,14 +41,7 @@ public interface Processor<T extends Processor<T>> {
 
   StateMap getState();
 
-  T withState(StateMap state);
+  Processor withState(StateMap state);
 
   DataProcessor getProcessor();
-
-  Class<T> getType();
-
-  @SuppressWarnings("unchecked")
-  default TypedReference<T> getRerefence() {
-    return TypedReference.typedObject(getType(), (T) this);
-  }
 }

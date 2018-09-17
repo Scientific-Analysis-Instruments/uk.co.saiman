@@ -28,21 +28,21 @@
 package uk.co.saiman.experiment.impl;
 
 import static java.lang.String.format;
+import static uk.co.saiman.experiment.ExperimentLifecycleState.CONFIGURATION;
 
-import java.io.IOException;
 import java.util.stream.Stream;
 
 import uk.co.saiman.experiment.Experiment;
 import uk.co.saiman.experiment.ExperimentConfiguration;
 import uk.co.saiman.experiment.ExperimentException;
 import uk.co.saiman.experiment.ExperimentNode;
-import uk.co.saiman.experiment.ResultStorage;
+import uk.co.saiman.experiment.ResultStore;
 import uk.co.saiman.experiment.state.StateMap;
 import uk.co.saiman.log.Log.Level;
 
 public class ExperimentImpl extends ExperimentNodeImpl<ExperimentConfiguration, Void>
     implements Experiment {
-  private final ResultStorage locationManager;
+  private final ResultStore locationManager;
 
   /**
    * Load a root experiment.
@@ -52,21 +52,21 @@ public class ExperimentImpl extends ExperimentNodeImpl<ExperimentConfiguration, 
    * @param id
    */
   protected ExperimentImpl(
-      ResultStorage locationManager,
+      ResultStore locationManager,
       String id,
       StateMap persistedState,
       WorkspaceImpl workspace) {
     super(id, workspace.getExperimentRootType(), persistedState, workspace);
     this.locationManager = locationManager;
+    getLifecycleState().set(CONFIGURATION);
   }
 
-  @Override
-  public ResultStorage getLocationManager() {
+  public ResultStore getLocationManager() {
     return locationManager;
   }
 
   @Override
-  public void removeImpl() {
+  protected void removeImpl() {
     if (!getWorkspace().removeExperiment(getExperiment())) {
       ExperimentException e = new ExperimentException(
           format("Experiment %s does not exist", getId()));
@@ -74,15 +74,7 @@ public class ExperimentImpl extends ExperimentNodeImpl<ExperimentConfiguration, 
       throw e;
     }
 
-    try {
-      getLocationManager().removeLocation(this);
-    } catch (IOException e) {
-      ExperimentException ee = new ExperimentException(
-          format("Cannot remove experiment %s", getId()),
-          e);
-      getLog().log(Level.ERROR, ee);
-      throw ee;
-    }
+    clearResult();
   }
 
   @Override

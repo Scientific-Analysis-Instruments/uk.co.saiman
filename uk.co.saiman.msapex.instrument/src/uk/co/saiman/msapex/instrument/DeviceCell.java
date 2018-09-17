@@ -28,27 +28,24 @@
 package uk.co.saiman.msapex.instrument;
 
 import static javafx.css.PseudoClass.getPseudoClass;
-import static uk.co.saiman.eclipse.ui.ListItems.ITEM_DATA;
 
-import javax.inject.Named;
-
-import org.eclipse.e4.ui.di.AboutToShow;
+import javax.inject.Inject;
 
 import javafx.scene.layout.HBox;
 import uk.co.saiman.eclipse.model.ui.Cell;
-import uk.co.saiman.instrument.ConnectionState;
 import uk.co.saiman.instrument.Device;
 
 public class DeviceCell {
-  public static final String ID = "uk.co.saiman.instrument.cell.device";
+  public static final String ID = "uk.co.saiman.msapex.instrument.cell.device";
 
-  @AboutToShow
-  public void prepare(HBox node, Cell cell, @Named(ITEM_DATA) Device item) {
-    ConnectionState state = item.connectionState().get();
-
-    node.pseudoClassStateChanged(getPseudoClass(state.toString()), true);
-
+  @Inject
+  public void prepare(HBox node, Cell cell, Device item) {
     cell.setLabel(item.getName());
-    // TODO cell.setSupplemental(state.toString());
+
+    item.connectionState().observe(state -> {
+      node.pseudoClassStateChanged(getPseudoClass(state.toString()), true);
+      // cell.setIcon(iconFor(state));
+      // TODO cell.setSupplemental(state.toString());
+    });
   }
 }
