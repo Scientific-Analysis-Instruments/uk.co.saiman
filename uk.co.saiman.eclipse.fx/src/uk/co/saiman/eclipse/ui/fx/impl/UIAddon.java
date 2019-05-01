@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,33 +27,41 @@
  */
 package uk.co.saiman.eclipse.ui.fx.impl;
 
+import static org.eclipse.e4.core.contexts.ContextInjectionFactory.make;
 import static org.eclipse.e4.ui.workbench.UIEvents.Context.TOPIC_CONTEXT;
 import static org.eclipse.e4.ui.workbench.UIEvents.EventTags.ELEMENT;
 import static org.eclipse.e4.ui.workbench.UIEvents.EventTags.NEW_VALUE;
 import static org.eclipse.e4.ui.workbench.UIEvents.EventTags.TYPE;
 import static org.eclipse.e4.ui.workbench.UIEvents.EventTypes.SET;
 import static org.eclipse.e4.ui.workbench.UIEvents.UIElement.TOPIC_TOBERENDERED;
+import static org.eclipse.e4.ui.workbench.UIEvents.UIElement.TOPIC_WIDGET;
+import static uk.co.saiman.eclipse.ui.SaiUiModel.NULLABLE;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
-import org.eclipse.e4.core.contexts.ContextInjectionFactory;
+import org.eclipse.e4.core.contexts.IContextFunction;
 import org.eclipse.e4.core.contexts.IEclipseContext;
+import org.eclipse.e4.core.contexts.RunAndTrack;
 import org.eclipse.e4.core.di.annotations.Optional;
 import org.eclipse.e4.ui.di.UIEventTopic;
+import org.eclipse.e4.ui.model.application.ui.MContext;
+import org.eclipse.e4.ui.model.application.ui.MUIElement;
 import org.eclipse.e4.ui.workbench.UIEvents;
+import org.eclipse.e4.ui.workbench.modeling.EPartService;
 import org.osgi.service.event.Event;
 
 import uk.co.saiman.eclipse.model.ui.Cell;
 import uk.co.saiman.eclipse.model.ui.Tree;
 import uk.co.saiman.eclipse.ui.ChildrenService;
+import uk.co.saiman.eclipse.ui.SaiUiModel;
 import uk.co.saiman.eclipse.ui.fx.ClipboardService;
+import uk.co.saiman.eclipse.ui.fx.EditableCellText;
 import uk.co.saiman.log.Log;
 import uk.co.saiman.log.Log.Level;
 
 public class UIAddon {
-  static final String CHILD_CONTEXT_VALUE = "uk.co.saiman.eclipse.model.ui.child.context.value";
-  static final String CHILD_CONTEXT_VALUE_SET = "uk.co.saiman.eclipse.model.ui.child.context.value.set";
+  private static final String VISIBILITY_AUTO_HIDDEN = "VisibilityAutoHidden";
 
   @Inject
   private Log log;
@@ -61,6 +69,14 @@ public class UIAddon {
   @PostConstruct
   public void initialize(IEclipseContext context, ClipboardServiceImpl clipboardService) {
     context.set(ClipboardService.class, clipboardService);
+    context
+        .set(
+            EditableCellText.class.getName(),
+            (IContextFunction) (c, k) -> make(EditableCellText.class, c));
+    context
+        .set(
+            ChildrenService.class.getName(),
+            (IContextFunction) (c, k) -> make(ChildrenServiceImpl.class, c));
   }
 
   /**
@@ -86,7 +102,7 @@ public class UIAddon {
    */
   @Inject
   @Optional
-  private synchronized void cellContextListener(@UIEventTopic(TOPIC_CONTEXT) Event event) {
+  private synchronized void contextCreationListener(@UIEventTopic(TOPIC_CONTEXT) Event event) {
     try {
       Object value = event.getProperty(NEW_VALUE);
       Object element = event.getProperty(ELEMENT);
@@ -94,32 +110,69 @@ public class UIAddon {
       if (value instanceof IEclipseContext && SET.equals(event.getProperty(TYPE))) {
         IEclipseContext context = (IEclipseContext) value;
 
-        if (element instanceof Cell || element instanceof Tree) {
-          try {
-            context
-                .set(
-                    ChildrenService.class,
-                    ContextInjectionFactory.make(ChildrenServiceImpl.class, context));
-            context.declareModifiable(ChildrenService.class);
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
-        }
-        if (element instanceof Cell) {
-          Cell cell = (Cell) element;
+        if (element instanceof Tree) {
+          ChildrenServiceImpl.prepareChildContainer(context);
 
-          if (cell.getPersistedState().containsKey(CHILD_CONTEXT_VALUE)) {
-            cell.setContextValue(cell.getPersistedState().get(CHILD_CONTEXT_VALUE));
-            if (cell.getTransientData().containsKey(CHILD_CONTEXT_VALUE)) {
-              context.set(cell.getContextValue(), cell.getTransientData().get(CHILD_CONTEXT_VALUE));
-            } else {
-              cell.setParent(null);
-            }
-          }
+        } else if (element instanceof Cell) {
+          ChildrenServiceImpl.prepareChildContainer(context);
+          ChildrenServiceImpl.prepareChild(context, (Cell) element);
         }
       }
     } catch (Exception e) {
       log.log(Level.ERROR, e);
     }
+  }
+
+  @Inject
+  @Optional
+  private synchronized void widgetCreationListener(@UIEventTopic(TOPIC_WIDGET) Event event) {
+    try {
+      Object element = event.getProperty(ELEMENT);
+
+      if (SET.equals(event.getProperty(TYPE))
+          && element instanceof MContext
+          && element instanceof MUIElement) {
+        prepareTransferContextValue((MContext) element, (MUIElement) element);
+      }
+    } catch (Exception e) {
+      log.log(Level.ERROR, e);
+    }
+  }
+
+  protected static <T extends MContext & MUIElement> void prepareTransferContextValue(
+      MContext context,
+      MUIElement element) {
+    if (context.getContext() == null) {
+      return;
+    }
+
+    String key = context.getProperties().get(SaiUiModel.PRIMARY_CONTEXT_KEY);
+    if (key == null || key.isEmpty()) {
+      return;
+    }
+
+    context.getContext().runAndTrack(new RunAndTrack() {
+      @Override
+      public boolean changed(IEclipseContext context) {
+        boolean isPresent = element.getTags().contains(NULLABLE)
+            ? context.containsKey(key)
+            : context.get(key) == null;
+
+        if (isPresent && element.getTags().contains(SaiUiModel.HIDE_ON_NULL)) {
+          if (element.getTags().contains(EPartService.REMOVE_ON_HIDE_TAG)) {
+            element.setToBeRendered(false);
+            element.setParent(null);
+
+          } else if (element.isVisible()) {
+            element.setVisible(false);
+            element.getTags().add(VISIBILITY_AUTO_HIDDEN);
+          }
+        } else if (element.getTags().remove(VISIBILITY_AUTO_HIDDEN)) {
+          element.setVisible(true);
+        }
+
+        return true;
+      }
+    });
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -74,7 +74,11 @@ public class TreeEditor extends AbstractEditor {
         new Type(
             getString("_UI_HandledCell_type"),
             ImageDescriptor.createFromFile(VListEditor.class, "/icons/full/obj16/HandledCell.gif"),
-            eINSTANCE.getHandledCell()));
+            eINSTANCE.getHandledCell()),
+        new Type(
+            getString("_UI_EditableCell_type"),
+            ImageDescriptor.createFromFile(VListEditor.class, "/icons/full/obj16/EditableCell.gif"),
+            eINSTANCE.getEditableCell()));
   }
 
   @Override
@@ -139,7 +143,7 @@ public class TreeEditor extends AbstractEditor {
     ControlFactory
         .createCheckBox(
             parent,
-            getString("_UI_Cell_editable_feature"),
+            getString("_UI_Tree_editable_feature"),
             getMaster(),
             context,
             WidgetProperties.selection(),

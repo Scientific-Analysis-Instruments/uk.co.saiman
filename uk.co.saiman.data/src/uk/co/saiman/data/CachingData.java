@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,11 +27,9 @@
  */
 package uk.co.saiman.data;
 
-import java.io.IOException;
 import java.lang.ref.SoftReference;
 
 import uk.co.saiman.data.format.DataFormat;
-import uk.co.saiman.data.resource.Location;
 import uk.co.saiman.data.resource.Resource;
 
 public class CachingData<T> extends SimpleData<T> {
@@ -40,10 +38,6 @@ public class CachingData<T> extends SimpleData<T> {
   public CachingData(Resource resource, DataFormat<T> format) {
     super(resource, format);
     this.dataReference = new SoftReference<>(null);
-  }
-
-  public CachingData(Location location, String name, DataFormat<T> format) throws IOException {
-    this(location.getResource(name, format.getExtension()), format);
   }
 
   @Override

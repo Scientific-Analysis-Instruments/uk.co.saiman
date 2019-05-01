@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,26 +27,19 @@
  */
 package uk.co.saiman.msapex.experiment.chemicalmap;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
-import javafx.scene.layout.HBox;
-import uk.co.saiman.eclipse.adapter.AdaptClass;
-import uk.co.saiman.eclipse.model.ui.Cell;
-import uk.co.saiman.experiment.ExperimentNode;
-import uk.co.saiman.experiment.chemicalmap.ChemicalMapConfiguration;
+import uk.co.saiman.eclipse.localization.Localize;
+import uk.co.saiman.msapex.experiment.chemicalmap.i18n.ChemicalMapProperties;
 
 public class ChemicalMapExperimentNodeCellContribution {
   public static final String ID = "uk.co.saiman.experiment.treecontribution.chemicalmap";
 
-  public class Contribution {
-    @Inject
-    public void prepare(
-        HBox node,
-        Cell cell,
-        ExperimentNode<?, ?> experiment,
-        @AdaptClass(ExperimentNode.class) ChemicalMapConfiguration configuration) {
-      cell.setLabel(experiment.getType().getName());
-      // TODO cell.setSupplemental(node, configuration.getChemicalMapName());
-    }
-  }
+  @Inject
+  @Localize
+  ChemicalMapProperties properties;
+
+  @PostConstruct
+  public void prepare() {}
 }

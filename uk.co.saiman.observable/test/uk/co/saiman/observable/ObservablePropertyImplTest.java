@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,22 +27,32 @@
  */
 package uk.co.saiman.observable;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.calls;
+import static org.mockito.Mockito.inOrder;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import mockit.FullVerificationsInOrder;
-import mockit.Injectable;
 import uk.co.saiman.observable.ObservableValue.Change;
 
+@ExtendWith(MockitoExtension.class)
 @SuppressWarnings("javadoc")
 public class ObservablePropertyImplTest {
-  @Injectable
+  @Mock
   Observer<String> downstreamObserver;
-  @Injectable
+  @Mock
   Observer<Change<String>> changeObserver;
+  @Captor
+  ArgumentCaptor<Change<String>> change;
 
   @Test
   public void getInitialValueTest() {
@@ -63,47 +73,41 @@ public class ObservablePropertyImplTest {
   public void initialValueMessageOnSubscribeTest() {
     ObservableProperty<String> property = new ObservablePropertyImpl<>("initial");
 
-    property.observe(downstreamObserver);
+    property.value().observe(downstreamObserver);
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        downstreamObserver.onNext("initial");
-      }
-    };
+    var inOrder = inOrder(downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(downstreamObserver).onNext("initial");
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
   public void initialValueMessageOnSubscribeMultipleTimesTest() {
     ObservableProperty<String> property = new ObservablePropertyImpl<>("initial");
 
-    property.observe(downstreamObserver).cancel();
-    property.observe(downstreamObserver);
+    property.value().observe(downstreamObserver).cancel();
+    property.value().observe(downstreamObserver);
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        downstreamObserver.onNext("initial");
-        downstreamObserver.onObserve((Observation) any);
-        downstreamObserver.onNext("initial");
-      }
-    };
+    var inOrder = inOrder(downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(downstreamObserver).onNext("initial");
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(downstreamObserver).onNext("initial");
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
   public void setValueMessageAfterSubscribeTest() {
     ObservableProperty<String> property = new ObservablePropertyImpl<>("initial");
 
-    property.observe(downstreamObserver);
+    property.value().observe(downstreamObserver);
     property.set("message");
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        downstreamObserver.onNext("initial");
-        downstreamObserver.onNext("message");
-      }
-    };
+    var inOrder = inOrder(downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(downstreamObserver).onNext("initial");
+    inOrder.verify(downstreamObserver).onNext("message");
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -111,14 +115,12 @@ public class ObservablePropertyImplTest {
     ObservableProperty<String> property = new ObservablePropertyImpl<>("initial");
 
     property.set("message");
-    property.observe(downstreamObserver);
+    property.value().observe(downstreamObserver);
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        downstreamObserver.onNext("message");
-      }
-    };
+    var inOrder = inOrder(downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(downstreamObserver).onNext("message");
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -126,16 +128,14 @@ public class ObservablePropertyImplTest {
     ObservableProperty<String> property = new ObservablePropertyImpl<>("initial");
     Throwable problem = new Throwable();
 
-    property.observe(downstreamObserver);
+    property.value().observe(downstreamObserver);
     property.setProblem(problem);
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        downstreamObserver.onNext("initial");
-        downstreamObserver.onFail(problem);
-      }
-    };
+    var inOrder = inOrder(downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(downstreamObserver).onNext("initial");
+    inOrder.verify(downstreamObserver).onFail(problem);
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -144,23 +144,21 @@ public class ObservablePropertyImplTest {
     Throwable problem = new Throwable();
 
     property.setProblem(problem);
-    property.observe(downstreamObserver);
+    property.value().observe(downstreamObserver);
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        downstreamObserver.onFail(problem);
-      }
-    };
+    var inOrder = inOrder(downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(downstreamObserver).onFail(problem);
+    inOrder.verifyNoMoreInteractions();
   }
 
-  @Test(expected = MissingValueException.class)
+  @Test
   public void setProblemEventThenGetTest() {
     ObservableProperty<String> property = new ObservablePropertyImpl<>("initial");
     Throwable problem = new Throwable();
 
     property.setProblem(problem);
-    property.get();
+    assertThrows(MissingValueException.class, () -> property.get());
   }
 
   @Test
@@ -173,18 +171,18 @@ public class ObservablePropertyImplTest {
     assertThat(property.get(), equalTo("message"));
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void failWithNullThrowableTest() {
     ObservablePropertyImpl<String> observable = new ObservablePropertyImpl<>("initial");
-    observable.observe();
-    observable.setProblem(null);
+    observable.value().observe();
+    assertThrows(NullPointerException.class, () -> observable.setProblem(null));
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void failWithNullMessageTest() {
     ObservablePropertyImpl<String> observable = new ObservablePropertyImpl<>("initial");
-    observable.observe();
-    observable.set(null);
+    observable.value().observe();
+    assertThrows(NullPointerException.class, () -> observable.set(null));
   }
 
   @Test
@@ -192,11 +190,9 @@ public class ObservablePropertyImplTest {
     ObservablePropertyImpl<String> observable = new ObservablePropertyImpl<>("initial");
     observable.changes().observe(changeObserver);
 
-    new FullVerificationsInOrder() {
-      {
-        changeObserver.onObserve((Observation) any);
-      }
-    };
+    var inOrder = inOrder(changeObserver);
+    inOrder.verify(changeObserver).onObserve(any());
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -205,15 +201,12 @@ public class ObservablePropertyImplTest {
     observable.changes().observe(changeObserver);
     observable.set("message");
 
-    new FullVerificationsInOrder() {
-      {
-        changeObserver.onObserve((Observation) any);
-        Change<String> change;
-        changeObserver.onNext(change = withCapture());
-        assertThat(change.previousValue().get(), equalTo("initial"));
-        assertThat(change.newValue().get(), equalTo("message"));
-      }
-    };
+    var inOrder = inOrder(changeObserver);
+    inOrder.verify(changeObserver).onObserve(any());
+    inOrder.verify(changeObserver).onNext(change.capture());
+    assertThat(change.getValue().previousValue().get(), equalTo("initial"));
+    assertThat(change.getValue().newValue().get(), equalTo("message"));
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -222,15 +215,12 @@ public class ObservablePropertyImplTest {
     observable.changes().observe(changeObserver);
     observable.setProblem(new Throwable());
 
-    new FullVerificationsInOrder() {
-      {
-        changeObserver.onObserve((Observation) any);
-        Change<String> change;
-        changeObserver.onNext(change = withCapture());
-        assertThat(change.previousValue().get(), equalTo("initial"));
-        assertFalse(change.newValue().isValid());
-      }
-    };
+    var inOrder = inOrder(changeObserver);
+    inOrder.verify(changeObserver).onObserve(any());
+    inOrder.verify(changeObserver).onNext(change.capture());
+    assertThat(change.getValue().previousValue().get(), equalTo("initial"));
+    assertFalse(change.getValue().newValue().isPresent());
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -239,11 +229,9 @@ public class ObservablePropertyImplTest {
     observable.changes().observe(changeObserver);
     observable.set("initial");
 
-    new FullVerificationsInOrder() {
-      {
-        changeObserver.onObserve((Observation) any);
-      }
-    };
+    var inOrder = inOrder(changeObserver);
+    inOrder.verify(changeObserver).onObserve(any());
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -253,20 +241,17 @@ public class ObservablePropertyImplTest {
     observable.setProblem(new Throwable());
     observable.set("message");
 
-    new FullVerificationsInOrder() {
-      {
-        Change<String> change;
-        changeObserver.onObserve((Observation) any);
+    var inOrder = inOrder(changeObserver);
+    inOrder.verify(changeObserver).onObserve(any());
+    inOrder.verify(changeObserver, calls(1)).onNext(change.capture());
 
-        changeObserver.onNext(change = withCapture());
-        assertThat(change.previousValue().get(), equalTo("initial"));
-        assertFalse(change.newValue().isValid());
+    assertThat(change.getValue().previousValue().get(), equalTo("initial"));
+    assertFalse(change.getValue().newValue().isPresent());
 
-        changeObserver.onNext(change = withCapture());
-        assertFalse(change.previousValue().isValid());
-        assertThat(change.newValue().get(), equalTo("message"));
-      }
-    };
+    inOrder.verify(changeObserver).onNext(change.capture());
+    assertFalse(change.getValue().previousValue().isPresent());
+    assertThat(change.getValue().newValue().get(), equalTo("message"));
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -276,23 +261,19 @@ public class ObservablePropertyImplTest {
     observable.setProblem(new Throwable());
     observable.setProblem(new Throwable());
 
-    new FullVerificationsInOrder() {
-      {
-        Change<String> change;
-        changeObserver.onObserve((Observation) any);
+    var inOrder = inOrder(changeObserver);
+    inOrder.verify(changeObserver).onObserve(any());
 
-        changeObserver.onNext(change = withCapture());
-        assertThat(change.previousValue().get(), equalTo("initial"));
-        assertFalse(change.newValue().isValid());
+    inOrder.verify(changeObserver, calls(1)).onNext(change.capture());
+    assertThat(change.getValue().previousValue().get(), equalTo("initial"));
+    assertFalse(change.getValue().newValue().isPresent());
 
-        changeObserver.onNext(change = withCapture());
-        assertFalse(change.previousValue().isValid());
-        assertFalse(change.newValue().isValid());
-      }
-    };
+    inOrder.verify(changeObserver).onNext(change.capture());
+    assertFalse(change.getValue().previousValue().isPresent());
+    assertFalse(change.getValue().newValue().isPresent());
+    inOrder.verifyNoMoreInteractions();
   }
 
-  @SuppressWarnings("unchecked")
   @Test
   public void changeIsImmutableAfterFurtherChange() {
     ObservablePropertyImpl<String> observable = new ObservablePropertyImpl<>("initial");
@@ -300,18 +281,15 @@ public class ObservablePropertyImplTest {
     observable.set("message");
     observable.set("more");
 
-    new FullVerificationsInOrder() {
-      {
-        changeObserver.onObserve((Observation) any);
-        Change<String> change;
-        changeObserver.onNext(change = withCapture());
-        assertThat(change.previousValue().get(), equalTo("initial"));
-        assertThat(change.newValue().get(), equalTo("message"));
+    var inOrder = inOrder(changeObserver);
+    inOrder.verify(changeObserver).onObserve(any());
+    inOrder.verify(changeObserver, calls(1)).onNext(change.capture());
+    assertThat(change.getValue().previousValue().get(), equalTo("initial"));
+    assertThat(change.getValue().newValue().get(), equalTo("message"));
 
-        changeObserver.onNext((Change<String>) any);
-        assertThat(change.previousValue().get(), equalTo("initial"));
-        assertThat(change.newValue().get(), equalTo("message"));
-      }
-    };
+    inOrder.verify(changeObserver).onNext(any());
+    assertThat(change.getValue().previousValue().get(), equalTo("initial"));
+    assertThat(change.getValue().newValue().get(), equalTo("message"));
+    inOrder.verifyNoMoreInteractions();
   }
 }

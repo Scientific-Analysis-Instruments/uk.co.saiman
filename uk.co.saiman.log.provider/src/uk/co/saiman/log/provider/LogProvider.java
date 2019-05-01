@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -98,11 +98,15 @@ public class LogProvider implements Log {
 
   @Override
   public void log(Level level, Throwable exception) {
-    log(level, exception.getMessage());
+    log(level, exceptionMessage(exception));
   }
 
   @Override
   public void log(Level level, String message, Throwable exception) {
-    log(level, message + " (" + exception.getMessage() + ")");
+    log(level, message + " (" + exceptionMessage(exception) + ")");
+  }
+
+  private String exceptionMessage(Throwable exception) {
+    return exception.getMessage() == null ? exception.getClass().getName() : exception.getMessage();
   }
 }

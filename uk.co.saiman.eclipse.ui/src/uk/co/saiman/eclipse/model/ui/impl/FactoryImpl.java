@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -86,8 +86,8 @@ public class FactoryImpl extends EFactoryImpl implements Factory {
     switch (eClass.getClassifierID()) {
       case Package.CELL: return (EObject)createCell();
       case Package.TREE: return (EObject)createTree();
-      case Package.CELL_CONTRIBUTION: return (EObject)createCellContribution();
       case Package.HANDLED_CELL: return (EObject)createHandledCell();
+      case Package.EDITABLE_CELL: return (EObject)createEditableCell();
       default:
         throw new IllegalArgumentException("The class '" + eClass.getName() + "' is not a valid classifier");
     }
@@ -148,9 +148,9 @@ public class FactoryImpl extends EFactoryImpl implements Factory {
    * @generated
    */
   @Override
-  public CellContribution createCellContribution() {
-    CellContributionImpl cellContribution = new CellContributionImpl();
-    return cellContribution;
+  public HandledCell createHandledCell() {
+    HandledCellImpl handledCell = new HandledCellImpl();
+    return handledCell;
   }
 
   /**
@@ -159,9 +159,9 @@ public class FactoryImpl extends EFactoryImpl implements Factory {
    * @generated
    */
   @Override
-  public HandledCell createHandledCell() {
-    HandledCellImpl handledCell = new HandledCellImpl();
-    return handledCell;
+  public EditableCell createEditableCell() {
+    EditableCellImpl editableCell = new EditableCellImpl();
+    return editableCell;
   }
 
   /**

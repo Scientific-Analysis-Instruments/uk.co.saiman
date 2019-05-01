@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -32,13 +32,13 @@ import javax.measure.quantity.Length;
 
 import uk.co.saiman.measurement.coordinate.PolarCoordinate;
 
-public interface PolarStage extends Stage<PolarCoordinate<Length>> {
+public interface PolarStage<T extends PolarStageControl> extends Stage<PolarCoordinate<Length>, T> {
   /**
    * @return The minimally containing radial upper bound of all
-   *         {@link #isLocationReachable(PolarCoordinate) reachable} positions of
-   *         the stage. The location of the bound itself may not be reachable at
-   *         every angle. Implementations of this method should be idempotent and
-   *         free of side-effects.
+   *         {@link #isLocationReachable(Object) reachable} positions of the
+   *         stage. The location of the bound itself may not be reachable at every
+   *         angle. Implementations of this method should be idempotent and free
+   *         of side-effects.
    */
   Quantity<Length> getUpperBound();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -39,12 +39,9 @@ import java.lang.annotation.RetentionPolicy;
 
 import org.osgi.annotation.bundle.Requirement;
 
-import uk.co.saiman.webmodule.react.RequireReactWebModule;
-
 /**
  * A Web Resource that provides RequireJS javascript files.
  */
-@RequireReactWebModule
 @Requirement(
     namespace = SERVICE_NAMESPACE,
     filter = "(" + ID_ATTRIBUTE + "=" + SAI_WEB_CONSOLE_WEB_MODULE_NAME + ")",

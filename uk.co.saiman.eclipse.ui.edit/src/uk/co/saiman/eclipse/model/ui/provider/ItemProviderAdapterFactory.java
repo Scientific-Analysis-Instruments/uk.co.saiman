@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -145,29 +145,6 @@ public class ItemProviderAdapterFactory extends AdapterFactory implements Compos
   }
 
   /**
-   * This keeps track of the one adapter used for all {@link uk.co.saiman.eclipse.model.ui.CellContribution} instances.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  protected CellContributionItemProvider cellContributionItemProvider;
-
-  /**
-   * This creates an adapter for a {@link uk.co.saiman.eclipse.model.ui.CellContribution}.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  @Override
-  public Adapter createCellContributionAdapter() {
-    if (cellContributionItemProvider == null) {
-      cellContributionItemProvider = new CellContributionItemProvider(this);
-    }
-
-    return cellContributionItemProvider;
-  }
-
-  /**
    * This keeps track of the one adapter used for all {@link uk.co.saiman.eclipse.model.ui.HandledCell} instances.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -188,6 +165,29 @@ public class ItemProviderAdapterFactory extends AdapterFactory implements Compos
     }
 
     return handledCellItemProvider;
+  }
+
+  /**
+   * This keeps track of the one adapter used for all {@link uk.co.saiman.eclipse.model.ui.EditableCell} instances.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  protected EditableCellItemProvider editableCellItemProvider;
+
+  /**
+   * This creates an adapter for a {@link uk.co.saiman.eclipse.model.ui.EditableCell}.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  @Override
+  public Adapter createEditableCellAdapter() {
+    if (editableCellItemProvider == null) {
+      editableCellItemProvider = new EditableCellItemProvider(this);
+    }
+
+    return editableCellItemProvider;
   }
 
   /**
@@ -298,8 +298,8 @@ public class ItemProviderAdapterFactory extends AdapterFactory implements Compos
   public void dispose() {
     if (cellItemProvider != null) cellItemProvider.dispose();
     if (treeItemProvider != null) treeItemProvider.dispose();
-    if (cellContributionItemProvider != null) cellContributionItemProvider.dispose();
     if (handledCellItemProvider != null) handledCellItemProvider.dispose();
+    if (editableCellItemProvider != null) editableCellItemProvider.dispose();
   }
 
 }

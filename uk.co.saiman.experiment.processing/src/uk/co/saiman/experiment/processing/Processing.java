@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,35 +27,63 @@
  */
 package uk.co.saiman.experiment.processing;
 
+import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
 import static uk.co.saiman.data.function.processing.DataProcessor.identity;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 import uk.co.saiman.data.function.processing.DataProcessor;
-import uk.co.saiman.experiment.state.StateMap;
 
 public class Processing {
-  private List<Processor> processors;
+  private List<DataProcessor> steps;
 
-  public Processing(Collection<? extends Processor> processors) {
-    // TODO Auto-generated constructor stub
+  public Processing() {
+    this.steps = emptyList();
   }
 
-  public Stream<Processor> processors() {
-    return processors.stream();
+  public Processing(Collection<? extends DataProcessor> processors) {
+    this.steps = new ArrayList<>(processors);
   }
 
-  public StateMap getState() {
-    return null;
+  public Stream<DataProcessor> steps() {
+    return steps.stream();
   }
 
-  public Processing withState(StateMap state) {
-    return null;
+  public static Collector<DataProcessor, ?, Processing> toProcessing() {
+    return collectingAndThen(toList(), Processing::new);
   }
 
   public DataProcessor getProcessor() {
-    return processors().map(p -> p.getProcessor()).reduce(identity(), DataProcessor::andThen);
+    return steps().reduce(identity(), DataProcessor::andThen);
+  }
+
+  public Processing withStep(DataProcessor step) {
+    List<DataProcessor> steps = new ArrayList<>(this.steps);
+    steps.add(step);
+    return new Processing(steps);
+  }
+
+  public Processing withStep(int index, DataProcessor step) {
+    List<DataProcessor> steps = new ArrayList<>(this.steps);
+    steps.add(index, step);
+    return new Processing(steps);
+  }
+
+  public Processing withStep(int index, Function<DataProcessor, DataProcessor> step) {
+    List<DataProcessor> steps = new ArrayList<>(this.steps);
+    steps.set(index, step.apply(steps.get(index)));
+    return new Processing(steps);
+  }
+
+  public Processing withoutStep(int index) {
+    steps.remove(index);
+    return new Processing(steps);
   }
 }

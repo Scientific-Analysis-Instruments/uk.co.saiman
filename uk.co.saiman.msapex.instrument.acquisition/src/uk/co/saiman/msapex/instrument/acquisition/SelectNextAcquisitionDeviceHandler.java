@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -41,7 +41,7 @@ import org.eclipse.e4.core.di.annotations.Execute;
 import org.eclipse.e4.core.di.annotations.Optional;
 import org.eclipse.fx.core.di.Service;
 
-import uk.co.saiman.acquisition.AcquisitionDevice;
+import uk.co.saiman.instrument.acquisition.AcquisitionDevice;
 
 /**
  * Track acquisition devices available through OSGi services and select which
@@ -52,12 +52,12 @@ import uk.co.saiman.acquisition.AcquisitionDevice;
 public class SelectNextAcquisitionDeviceHandler {
   @Inject
   @Service
-  List<AcquisitionDevice> availableDevices;
+  List<AcquisitionDevice<?>> availableDevices;
 
   @Execute
   void execute(IEclipseContext context, @Optional AcquisitionDeviceSelection selectedDevices) {
-    List<AcquisitionDevice> availableDevices = new ArrayList<>(this.availableDevices);
-    List<AcquisitionDevice> selection = selectedDevices != null
+    List<AcquisitionDevice<?>> availableDevices = new ArrayList<>(this.availableDevices);
+    List<AcquisitionDevice<?>> selection = selectedDevices != null
         ? selectedDevices.getSelectedDevices().collect(toList())
         : emptyList();
 

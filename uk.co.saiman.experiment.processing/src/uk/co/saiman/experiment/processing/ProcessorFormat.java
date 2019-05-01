@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -38,9 +38,10 @@ import java.util.stream.Stream;
 import uk.co.saiman.data.format.DataFormat;
 import uk.co.saiman.data.format.MediaType;
 import uk.co.saiman.data.format.Payload;
-import uk.co.saiman.experiment.state.StateMap;
+import uk.co.saiman.data.function.processing.DataProcessor;
+import uk.co.saiman.state.StateMap;
 
-public class ProcessorFormat implements DataFormat<Processor> {
+public class ProcessorFormat implements DataFormat<DataProcessor> {
   public static final int VERSION = 1;
 
   public static final MediaType MEDIA_TYPE = new MediaType(
@@ -49,9 +50,9 @@ public class ProcessorFormat implements DataFormat<Processor> {
       VENDOR).withSuffix("json");
 
   private final DataFormat<StateMap> stateMapFormat;
-  private final ProcessorService processorService;
+  private final ProcessingService processorService;
 
-  public ProcessorFormat(DataFormat<StateMap> stateMapFormat, ProcessorService processorService) {
+  public ProcessorFormat(DataFormat<StateMap> stateMapFormat, ProcessingService processorService) {
     this.stateMapFormat = stateMapFormat;
     this.processorService = processorService;
   }
@@ -67,13 +68,21 @@ public class ProcessorFormat implements DataFormat<Processor> {
   }
 
   @Override
-  public Payload<? extends Processor> load(ReadableByteChannel inputChannel) throws IOException {
-    return new Payload<>(processorService.loadProcessor(stateMapFormat.load(inputChannel).data));
+  public Payload<? extends DataProcessor> load(ReadableByteChannel inputChannel)
+      throws IOException {
+    return new Payload<>(
+        processorService
+            .loadDeclaration(
+                ProcessorDeclaration.fromState(stateMapFormat.load(inputChannel).data)));
   }
 
   @Override
-  public void save(WritableByteChannel outputChannel, Payload<? extends Processor> payload)
+  public void save(WritableByteChannel outputChannel, Payload<? extends DataProcessor> payload)
       throws IOException {
-    stateMapFormat.save(outputChannel, new Payload<>(payload.data.getState()));
+    stateMapFormat
+        .save(
+            outputChannel,
+            new Payload<>(
+                ProcessorDeclaration.toState(processorService.saveDeclaration(payload.data))));
   }
 }

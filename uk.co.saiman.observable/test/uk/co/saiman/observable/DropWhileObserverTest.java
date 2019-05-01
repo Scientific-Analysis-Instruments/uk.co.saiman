@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,17 +27,22 @@
  */
 package uk.co.saiman.observable;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
 
-import mockit.FullVerificationsInOrder;
-import mockit.Injectable;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @SuppressWarnings("javadoc")
+@ExtendWith(MockitoExtension.class)
 public class DropWhileObserverTest {
-  @Injectable
+  @Mock
   Observation upstreamObservation;
 
-  @Injectable
+  @Mock
   Observer<String> downstreamObserver;
 
   @Test
@@ -47,12 +52,10 @@ public class DropWhileObserverTest {
     test.onObserve(upstreamObservation);
     test.onNext("message");
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        downstreamObserver.onNext("message");
-      }
-    };
+    var inOrder = inOrder(downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(downstreamObserver).onNext("message");
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -62,12 +65,10 @@ public class DropWhileObserverTest {
     test.onObserve(upstreamObservation);
     test.onNext("message");
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        upstreamObservation.requestNext();
-      }
-    };
+    var inOrder = inOrder(upstreamObservation, downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(upstreamObservation).requestNext();
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -78,13 +79,11 @@ public class DropWhileObserverTest {
     test.onNext("pass");
     test.onNext("fail");
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        upstreamObservation.requestNext();
-        downstreamObserver.onNext("fail");
-      }
-    };
+    var inOrder = inOrder(upstreamObservation, downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(upstreamObservation).requestNext();
+    inOrder.verify(downstreamObserver).onNext("fail");
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -95,17 +94,17 @@ public class DropWhileObserverTest {
     test.onNext("fail");
     test.onNext("pass");
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        downstreamObserver.onNext("fail");
-        downstreamObserver.onNext("pass");
-      }
-    };
+    var inOrder = inOrder(downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(downstreamObserver).onNext("fail");
+    inOrder.verify(downstreamObserver).onNext("pass");
+    inOrder.verifyNoMoreInteractions();
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void nullSkipFilterTest() {
-    new DropWhileObserver<>(downstreamObserver, null);
+    assertThrows(
+        NullPointerException.class,
+        () -> new DropWhileObserver<>(downstreamObserver, null));
   }
 }

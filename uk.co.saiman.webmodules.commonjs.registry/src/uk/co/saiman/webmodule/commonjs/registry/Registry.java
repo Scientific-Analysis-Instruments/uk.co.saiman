@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -32,6 +32,11 @@ import java.net.URL;
 import uk.co.saiman.webmodule.PackageId;
 import uk.co.saiman.webmodule.commonjs.Resolver;
 
+/**
+ * A CommonJS format registry of packages.
+ * 
+ * @author Elias N Vasylenko
+ */
 public interface Registry extends Resolver {
   PackageRoot getPackageRoot(PackageId name);
 

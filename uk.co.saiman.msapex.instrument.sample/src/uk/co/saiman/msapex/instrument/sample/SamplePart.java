@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -41,6 +41,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import uk.co.saiman.eclipse.localization.Localize;
+import uk.co.saiman.msapex.instrument.sample.i18n.SampleDeviceProperties;
 
 /**
  * An Eclipse part for management and display of acquisition devices.
@@ -52,7 +53,7 @@ public class SamplePart {
 
   @Localize
   @Inject
-  SamplePartProperties text;
+  SampleDeviceProperties text;
 
   @FXML
   private Pane samplePane;

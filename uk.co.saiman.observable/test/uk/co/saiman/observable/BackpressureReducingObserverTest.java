@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,66 +27,58 @@
  */
 package uk.co.saiman.observable;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.when;
 import static uk.co.saiman.observable.BackpressureReducingObserver.backpressureReducingObserver;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import org.junit.Test;
-
-import mockit.Expectations;
-import mockit.FullVerificationsInOrder;
-import mockit.Injectable;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @SuppressWarnings("javadoc")
+@ExtendWith(MockitoExtension.class)
 public class BackpressureReducingObserverTest {
-  @Injectable
+  @Mock
   Observation upstreamObservation;
 
-  @Injectable
+  @Mock
   Observer<String> downstreamObserver;
 
-  @Injectable
+  @Mock
   Supplier<String> identity;
 
-  @Injectable
+  @Mock
   Function<String, String> initial;
 
-  @Injectable
+  @Mock
   BiFunction<String, String, String> accumulator;
 
   @Test
   public void accumulateFromIdentityAndSingleMessage() {
-    new Expectations() {
-      {
-        identity.get();
-        result = "identity";
-      }
-    };
+    when(identity.get()).thenReturn("identity");
 
     Observer<String> test = backpressureReducingObserver(downstreamObserver, identity, accumulator);
 
     test.onObserve(upstreamObservation);
     test.onNext("message");
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        identity.get();
-        accumulator.apply("identity", "message");
-      }
-    };
+    var inOrder = inOrder(downstreamObserver, identity, accumulator);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(identity).get();
+    inOrder.verify(accumulator).apply("identity", "message");
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
   public void accumulateFromIdentityAndTwoMessages() {
-    new Expectations() {
-      {
-        identity.get();
-        result = "identity";
-      }
-    };
+    when(identity.get()).thenReturn("identity");
 
     Observer<String> test = backpressureReducingObserver(downstreamObserver, identity, accumulator);
 
@@ -94,26 +86,18 @@ public class BackpressureReducingObserverTest {
     test.onNext("message1");
     test.onNext("message2");
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        identity.get();
-        accumulator.apply("identity", "message1");
-        accumulator.apply("identity", "message2");
-      }
-    };
+    var inOrder = inOrder(downstreamObserver, identity, accumulator);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(identity).get();
+    inOrder.verify(accumulator).apply("identity", "message1");
+    inOrder.verify(accumulator).apply("identity", "message2");
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
   public void accumulateFromIdentityAndSingleMessageThenComplete() {
-    new Expectations() {
-      {
-        identity.get();
-        result = "identity";
-        accumulator.apply(anyString, anyString);
-        result = "accumulation";
-      }
-    };
+    when(identity.get()).thenReturn("identity");
+    when(accumulator.apply(any(), any())).thenReturn("accumulation");
 
     Observer<String> test = backpressureReducingObserver(downstreamObserver, identity, accumulator);
 
@@ -121,25 +105,17 @@ public class BackpressureReducingObserverTest {
     test.onNext("message");
     test.onComplete();
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        identity.get();
-        accumulator.apply("identity", "message");
-      }
-    };
+    var inOrder = inOrder(downstreamObserver, identity, accumulator);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(identity).get();
+    inOrder.verify(accumulator).apply("identity", "message");
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
   public void accumulateFromInitialMessageAndSingleMessage() {
-    new Expectations() {
-      {
-        initial.apply(anyString);
-        result = "initial";
-        accumulator.apply(anyString, anyString);
-        result = "accumulation";
-      }
-    };
+    when(initial.apply(any())).thenReturn("initial");
+    when(accumulator.apply(any(), any())).thenReturn("accumulation");
 
     Observer<String> test = backpressureReducingObserver(downstreamObserver, initial, accumulator);
 
@@ -147,13 +123,11 @@ public class BackpressureReducingObserverTest {
     test.onNext("message1");
     test.onNext("message2");
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        initial.apply("message1");
-        accumulator.apply("initial", "message2");
-      }
-    };
+    var inOrder = inOrder(downstreamObserver, initial, accumulator);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(initial).apply("message1");
+    inOrder.verify(accumulator).apply("initial", "message2");
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -163,12 +137,10 @@ public class BackpressureReducingObserverTest {
     test.onObserve(upstreamObservation);
     test.onComplete();
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        downstreamObserver.onComplete();
-      }
-    };
+    var inOrder = inOrder(downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(downstreamObserver).onComplete();
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -181,11 +153,9 @@ public class BackpressureReducingObserverTest {
     test.onObserve(upstreamObservation);
     test.getObservation().requestNext();
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-      }
-    };
+    var inOrder = inOrder(downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -198,21 +168,14 @@ public class BackpressureReducingObserverTest {
     test.onObserve(upstreamObservation);
     test.getObservation().requestNext();
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-      }
-    };
+    var inOrder = inOrder(downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
   public void requestNextFromInitialMessage() {
-    new Expectations() {
-      {
-        initial.apply(anyString);
-        result = "initial";
-      }
-    };
+    when(initial.apply(any())).thenReturn("initial");
 
     PassthroughObserver<String, String> test = backpressureReducingObserver(
         downstreamObserver,
@@ -223,35 +186,44 @@ public class BackpressureReducingObserverTest {
     test.onNext("message");
     test.getObservation().requestNext();
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        initial.apply("message");
-        downstreamObserver.onNext("initial");
-      }
-    };
+    var inOrder = inOrder(downstreamObserver, initial);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(initial).apply("message");
+    inOrder.verify(downstreamObserver).onNext("initial");
+    inOrder.verifyNoMoreInteractions();
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void nullAccumulaterWithIdentityTest() {
-    backpressureReducingObserver(downstreamObserver, () -> null, null);
+    assertThrows(
+        NullPointerException.class,
+        () -> backpressureReducingObserver(downstreamObserver, () -> null, null));
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void nullAccumulaterWithInitialTest() {
-    backpressureReducingObserver(downstreamObserver, a -> null, null);
+    assertThrows(
+        NullPointerException.class,
+        () -> backpressureReducingObserver(downstreamObserver, a -> null, null));
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void nullIdentityTest() {
-    backpressureReducingObserver(downstreamObserver, (Supplier<String>) null, (a, b) -> null);
+    assertThrows(
+        NullPointerException.class,
+        () -> backpressureReducingObserver(
+            downstreamObserver,
+            (Supplier<String>) null,
+            (a, b) -> null));
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void nullInitialTest() {
-    backpressureReducingObserver(
-        downstreamObserver,
-        (Function<String, String>) null,
-        (a, b) -> null);
+    assertThrows(
+        NullPointerException.class,
+        () -> backpressureReducingObserver(
+            downstreamObserver,
+            (Function<String, String>) null,
+            (a, b) -> null));
   }
 }

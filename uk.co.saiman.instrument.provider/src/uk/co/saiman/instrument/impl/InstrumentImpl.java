@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,6 +27,7 @@
  */
 package uk.co.saiman.instrument.impl;
 
+import static org.osgi.service.component.annotations.ConfigurationPolicy.OPTIONAL;
 import static uk.co.saiman.instrument.InstrumentLifecycleState.BEGIN_OPERATION;
 import static uk.co.saiman.instrument.InstrumentLifecycleState.END_OPERATION;
 import static uk.co.saiman.instrument.InstrumentLifecycleState.OPERATING;
@@ -37,12 +38,15 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.metatype.annotations.Designate;
+import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 
 import uk.co.saiman.instrument.Device;
 import uk.co.saiman.instrument.DeviceRegistration;
 import uk.co.saiman.instrument.Instrument;
 import uk.co.saiman.instrument.InstrumentLifecycleState;
 import uk.co.saiman.instrument.InstrumentRegistration;
+import uk.co.saiman.instrument.impl.InstrumentImpl.InstrumentConfiguration;
 import uk.co.saiman.observable.ObservableProperty;
 import uk.co.saiman.observable.ObservablePropertyImpl;
 import uk.co.saiman.observable.ObservableValue;
@@ -56,9 +60,16 @@ import uk.co.saiman.observable.ObservableValue;
  * 
  * @author Elias N Vasylenko
  */
-@Component
+@Designate(ocd = InstrumentConfiguration.class, factory = true)
+@Component(name = InstrumentImpl.CONFIGURATION_PID, configurationPid = InstrumentImpl.CONFIGURATION_PID, configurationPolicy = OPTIONAL)
 public class InstrumentImpl implements Instrument {
-  private final Set<DeviceRegistration> devices;
+  static final String CONFIGURATION_PID = "uk.co.saiman.instrument";
+
+  @SuppressWarnings("javadoc")
+  @ObjectClassDefinition(id = CONFIGURATION_PID, name = "SAINT Instrument Configuration", description = "The configuration for an instrument")
+  public @interface InstrumentConfiguration {}
+
+  private final Set<InstrumentRegistration> devices;
   private final ObservableProperty<InstrumentLifecycleState> state;
 
   /**
@@ -70,13 +81,13 @@ public class InstrumentImpl implements Instrument {
   }
 
   @Override
-  public Stream<? extends DeviceRegistration> getRegistrations() {
+  public Stream<? extends InstrumentRegistration> getRegistrations() {
     return devices.stream();
   }
 
   @Override
-  public synchronized InstrumentRegistration registerDevice(Device device) {
-    DeviceRegistration deviceRegistration = new DeviceRegistration() {
+  public synchronized DeviceRegistration registerDevice(Device<?> device) {
+    InstrumentRegistration deviceRegistration = new InstrumentRegistration() {
       @Override
       public boolean isRegistered() {
         return devices.contains(this);
@@ -88,19 +99,19 @@ public class InstrumentImpl implements Instrument {
       }
 
       @Override
-      public Device getDevice() {
+      public Device<?> getDevice() {
         return device;
       }
     };
 
-    InstrumentRegistration instrumentRegistration = new InstrumentRegistration() {
+    DeviceRegistration instrumentRegistration = new DeviceRegistration() {
       @Override
-      public void unregister() {
+      public void deregister() {
         devices.remove(deviceRegistration);
       }
 
       @Override
-      public DeviceRegistration getDeviceRegistration() {
+      public InstrumentRegistration getInstrumentRegistration() {
         return deviceRegistration;
       }
     };
@@ -128,7 +139,7 @@ public class InstrumentImpl implements Instrument {
 
   private synchronized boolean transitionToState(InstrumentLifecycleState state) {
     this.state.set(state);
-    return this.state.isValid();
+    return this.state.isPresent();
   }
 
   @Override

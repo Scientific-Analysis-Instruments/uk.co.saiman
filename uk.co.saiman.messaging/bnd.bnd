@@ -1,0 +1,14 @@
+Bundle-Name: SAI :: Messaging
+
+-buildpath: \
+	uk.co.saiman.observable;version=snapshot,\
+	uk.co.saiman.utilities;version=snapshot,\
+	uk.co.saiman.osgi;version=snapshot,\
+	uk.co.saiman.shell;version=snapshot,\
+	org.apache.felix.gogo.command,\
+	org.apache.felix.gogo.runtime,\
+	org.apache.felix.gogo.shell
+
+Export-Package: \
+	uk.co.saiman.messaging,\
+	uk.co.saiman.messaging.commands

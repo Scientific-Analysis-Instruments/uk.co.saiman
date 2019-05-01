@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -45,7 +45,7 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.impl.EPackageImpl;
 import uk.co.saiman.data.format.MediaType;
 import uk.co.saiman.eclipse.model.ui.Cell;
-import uk.co.saiman.eclipse.model.ui.CellContribution;
+import uk.co.saiman.eclipse.model.ui.EditableCell;
 import uk.co.saiman.eclipse.model.ui.Factory;
 import uk.co.saiman.eclipse.model.ui.HandledCell;
 import uk.co.saiman.eclipse.model.ui.Tree;
@@ -77,14 +77,14 @@ public class PackageImpl extends EPackageImpl implements uk.co.saiman.eclipse.mo
    * <!-- end-user-doc -->
    * @generated
    */
-  private EClass cellContributionEClass = null;
+  private EClass handledCellEClass = null;
 
   /**
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
    * @generated
    */
-  private EClass handledCellEClass = null;
+  private EClass editableCellEClass = null;
 
   /**
    * <!-- begin-user-doc -->
@@ -178,35 +178,8 @@ public class PackageImpl extends EPackageImpl implements uk.co.saiman.eclipse.mo
    * <!-- end-user-doc -->
    * @generated
    */
-  public EAttribute getCell_MediaTypes() {
-    return (EAttribute)cellEClass.getEStructuralFeatures().get(0);
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  public EAttribute getCell_Editable() {
-    return (EAttribute)cellEClass.getEStructuralFeatures().get(1);
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  public EReference getCell_Contributions() {
-    return (EReference)cellEClass.getEStructuralFeatures().get(2);
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
   public EReference getCell_PopupMenu() {
-    return (EReference)cellEClass.getEStructuralFeatures().get(3);
+    return (EReference)cellEClass.getEStructuralFeatures().get(0);
   }
 
   /**
@@ -214,26 +187,8 @@ public class PackageImpl extends EPackageImpl implements uk.co.saiman.eclipse.mo
    * <!-- end-user-doc -->
    * @generated
    */
-  public EAttribute getCell_TransferFormats() {
-    return (EAttribute)cellEClass.getEStructuralFeatures().get(4);
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  public EAttribute getCell_ContextValue() {
-    return (EAttribute)cellEClass.getEStructuralFeatures().get(5);
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  public EAttribute getCell_Optional() {
-    return (EAttribute)cellEClass.getEStructuralFeatures().get(6);
+  public EAttribute getCell_Expanded() {
+    return (EAttribute)cellEClass.getEStructuralFeatures().get(1);
   }
 
   /**
@@ -259,26 +214,53 @@ public class PackageImpl extends EPackageImpl implements uk.co.saiman.eclipse.mo
    * <!-- end-user-doc -->
    * @generated
    */
-  public EClass getCellContribution() {
-    return cellContributionEClass;
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
-  public EReference getCellContribution_Parent() {
-    return (EReference)cellContributionEClass.getEStructuralFeatures().get(0);
-  }
-
-  /**
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @generated
-   */
   public EClass getHandledCell() {
     return handledCellEClass;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getHandledCell_Command() {
+    return (EReference)handledCellEClass.getEStructuralFeatures().get(0);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EAttribute getHandledCell_WbCommand() {
+    return (EAttribute)handledCellEClass.getEStructuralFeatures().get(1);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EReference getHandledCell_Parameters() {
+    return (EReference)handledCellEClass.getEStructuralFeatures().get(2);
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EClass getEditableCell() {
+    return editableCellEClass;
+  }
+
+  /**
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @generated
+   */
+  public EAttribute getEditableCell_Editing() {
+    return (EAttribute)editableCellEClass.getEStructuralFeatures().get(0);
   }
 
   /**
@@ -328,21 +310,19 @@ public class PackageImpl extends EPackageImpl implements uk.co.saiman.eclipse.mo
 
     // Create classes and their features
     cellEClass = createEClass(CELL);
-    createEAttribute(cellEClass, CELL__MEDIA_TYPES);
-    createEAttribute(cellEClass, CELL__EDITABLE);
-    createEReference(cellEClass, CELL__CONTRIBUTIONS);
     createEReference(cellEClass, CELL__POPUP_MENU);
-    createEAttribute(cellEClass, CELL__TRANSFER_FORMATS);
-    createEAttribute(cellEClass, CELL__CONTEXT_VALUE);
-    createEAttribute(cellEClass, CELL__OPTIONAL);
+    createEAttribute(cellEClass, CELL__EXPANDED);
 
     treeEClass = createEClass(TREE);
     createEAttribute(treeEClass, TREE__EDITABLE);
 
-    cellContributionEClass = createEClass(CELL_CONTRIBUTION);
-    createEReference(cellContributionEClass, CELL_CONTRIBUTION__PARENT);
-
     handledCellEClass = createEClass(HANDLED_CELL);
+    createEReference(handledCellEClass, HANDLED_CELL__COMMAND);
+    createEAttribute(handledCellEClass, HANDLED_CELL__WB_COMMAND);
+    createEReference(handledCellEClass, HANDLED_CELL__PARAMETERS);
+
+    editableCellEClass = createEClass(EDITABLE_CELL);
+    createEAttribute(editableCellEClass, EDITABLE_CELL__EDITING);
 
     // Create data types
     mediaTypeEDataType = createEDataType(MEDIA_TYPE);
@@ -406,31 +386,24 @@ public class PackageImpl extends EPackageImpl implements uk.co.saiman.eclipse.mo
     treeEClass.getEGenericSuperTypes().add(g1);
     g1 = createEGenericType(theCommandsPackage.getHandlerContainer());
     treeEClass.getEGenericSuperTypes().add(g1);
-    cellContributionEClass.getESuperTypes().add(theUiPackage.getContext());
-    cellContributionEClass.getESuperTypes().add(theApplicationPackage.getContribution());
     handledCellEClass.getESuperTypes().add(this.getCell());
-    handledCellEClass.getESuperTypes().add(theMenuPackage.getHandledItem());
+    editableCellEClass.getESuperTypes().add(this.getCell());
 
     // Initialize classes, features, and operations; add parameters
     initEClass(cellEClass, Cell.class, "Cell", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-    initEAttribute(getCell_MediaTypes(), this.getMediaType(), "mediaTypes", null, 0, -1, Cell.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-    initEAttribute(getCell_Editable(), ecorePackage.getEBoolean(), "editable", null, 0, 1, Cell.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-    initEReference(getCell_Contributions(), this.getCellContribution(), this.getCellContribution_Parent(), "contributions", null, 0, -1, Cell.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
     initEReference(getCell_PopupMenu(), theMenuPackage.getPopupMenu(), null, "popupMenu", null, 0, 1, Cell.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-    g1 = createEGenericType(this.getTransferFormat());
-    g2 = createEGenericType();
-    g1.getETypeArguments().add(g2);
-    initEAttribute(getCell_TransferFormats(), g1, "transferFormats", null, 0, -1, Cell.class, IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, IS_DERIVED, IS_ORDERED);
-    initEAttribute(getCell_ContextValue(), ecorePackage.getEString(), "contextValue", null, 0, 1, Cell.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-    initEAttribute(getCell_Optional(), ecorePackage.getEBoolean(), "optional", null, 0, 1, Cell.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEAttribute(getCell_Expanded(), ecorePackage.getEBoolean(), "expanded", "false", 0, 1, Cell.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     initEClass(treeEClass, Tree.class, "Tree", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
     initEAttribute(getTree_Editable(), ecorePackage.getEBoolean(), "editable", null, 0, 1, Tree.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
-    initEClass(cellContributionEClass, CellContribution.class, "CellContribution", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-    initEReference(getCellContribution_Parent(), this.getCell(), this.getCell_Contributions(), "parent", null, 0, 1, CellContribution.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-
     initEClass(handledCellEClass, HandledCell.class, "HandledCell", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+    initEReference(getHandledCell_Command(), theCommandsPackage.getCommand(), null, "command", null, 0, 1, HandledCell.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEAttribute(getHandledCell_WbCommand(), theCommandsPackage.getParameterizedCommand(), "wbCommand", null, 0, 1, HandledCell.class, IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+    initEReference(getHandledCell_Parameters(), theCommandsPackage.getParameter(), null, "parameters", null, 0, -1, HandledCell.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+
+    initEClass(editableCellEClass, EditableCell.class, "EditableCell", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
+    initEAttribute(getEditableCell_Editing(), ecorePackage.getEBoolean(), "editing", "false", 0, 1, EditableCell.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
     // Initialize data types
     initEDataType(mediaTypeEDataType, MediaType.class, "MediaType", IS_SERIALIZABLE, !IS_GENERATED_INSTANCE_CLASS);

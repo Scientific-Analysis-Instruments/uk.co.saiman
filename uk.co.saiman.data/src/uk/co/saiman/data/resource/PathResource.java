@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,10 +27,11 @@
  */
 package uk.co.saiman.data.resource;
 
-import static java.nio.file.StandardOpenOption.CREATE;
+import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 import static java.nio.file.StandardOpenOption.READ;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static java.nio.file.StandardOpenOption.WRITE;
+import static uk.co.saiman.bytes.Channels.pipe;
 
 import java.io.IOException;
 import java.nio.channels.ByteChannel;
@@ -51,15 +52,33 @@ public class PathResource implements Resource {
   }
 
   @Override
+  public String toString() {
+    return PathResource.class.getSimpleName() + "(" + path + ")";
+  }
+
+  @Override
   public String getName() {
-    String name = path.getFileName().toString();
-    int lastDot = name.lastIndexOf('.');
-    return lastDot > 0 ? name.substring(0, lastDot - 1) : name;
+    return path.getFileName().toString();
   }
 
   @Override
   public boolean hasExtension(String extension) {
     return path.getFileName().toString().endsWith("." + extension);
+  }
+
+  @Override
+  public Resource transfer(Resource destination) throws IOException {
+    if (destination instanceof PathResource) {
+      Path destinationPath = ((PathResource) destination).path;
+      if (!path.equals(destinationPath)) {
+        Files.move(path, destinationPath, ATOMIC_MOVE);
+      }
+    } else {
+      destination.create();
+      pipe(read(), destination.write());
+      delete();
+    }
+    return destination;
   }
 
   @Override
@@ -70,12 +89,12 @@ public class PathResource implements Resource {
   @Override
   public WritableByteChannel write() throws IOException {
     Files.createDirectories(path.getParent());
-    return Files.newByteChannel(path, CREATE, WRITE, TRUNCATE_EXISTING);
+    return Files.newByteChannel(path, WRITE, TRUNCATE_EXISTING);
   }
 
   @Override
   public ByteChannel open() throws IOException {
-    return Files.newByteChannel(path, CREATE, READ, WRITE);
+    return Files.newByteChannel(path, READ, WRITE);
   }
 
   @Override
@@ -84,8 +103,20 @@ public class PathResource implements Resource {
   }
 
   @Override
+  public boolean exists() {
+    return Files.exists(path);
+  }
+
+  @Override
+  public void create() throws IOException {
+    if (!Files.exists(path)) {
+      Files.createDirectories(path.getParent());
+      Files.createFile(path);
+    }
+  }
+
+  @Override
   public void delete() throws IOException {
-    if (Files.exists(path))
-      Files.delete(path);
+    Files.deleteIfExists(path);
   }
 }

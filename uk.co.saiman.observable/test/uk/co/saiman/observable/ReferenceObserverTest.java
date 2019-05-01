@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,34 +27,40 @@
  */
 package uk.co.saiman.observable;
 
-import static org.junit.Assert.assertNull;
+import static java.time.Duration.ofMillis;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.inOrder;
 
 import java.lang.ref.WeakReference;
 
-import org.junit.Test;
-
-import mockit.FullVerificationsInOrder;
-import mockit.Injectable;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @SuppressWarnings("javadoc")
+@ExtendWith(MockitoExtension.class)
 public class ReferenceObserverTest {
-  @Injectable
+  @Mock
   Observation upstreamObservation;
 
-  @Injectable
+  @Mock
   Observer<String> downstreamObserver;
 
-  @Test(timeout = 5000)
+  @Test
   public void weakReferenceTest() {
-    WeakReference<?> reference = new WeakReference<>(new Object());
+    Assertions.assertTimeout(ofMillis(5000), () -> {
+      WeakReference<?> reference = new WeakReference<>(new Object());
 
-    while (reference.get() != null) {
-      new Object();
-      System.gc();
-      System.runFinalization();
-    }
+      while (reference.get() != null) {
+        new Object();
+        System.gc();
+        System.runFinalization();
+      }
 
-    assertNull(reference.get());
+      assertNull(reference.get());
+    });
   }
 
   private Observer<String> wrapDownstreamObserver() {
@@ -81,7 +87,7 @@ public class ReferenceObserverTest {
     };
   }
 
-  @Test(timeout = 5000)
+  @Test
   public void holdWeakObserverThenMessageTest() {
     Observer<String> downstreamObserverWrapper = wrapDownstreamObserver();
     Observer<String> test = ReferenceObserver.weak(downstreamObserverWrapper);
@@ -90,15 +96,13 @@ public class ReferenceObserverTest {
     weakReferenceTest();
     test.onNext("message");
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve(upstreamObservation);
-        downstreamObserver.onNext("message");
-      }
-    };
+    var inOrder = inOrder(upstreamObservation, downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(upstreamObservation);
+    inOrder.verify(downstreamObserver).onNext("message");
+    inOrder.verifyNoMoreInteractions();
   }
 
-  @Test(timeout = 5000)
+  @Test
   public void dropWeakObserverThenMessageTest() {
     Observer<String> downstreamObserverWrapper = wrapDownstreamObserver();
     Observer<String> test = ReferenceObserver.weak(downstreamObserverWrapper);
@@ -109,12 +113,10 @@ public class ReferenceObserverTest {
     weakReferenceTest();
     test.onNext("message2");
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve(upstreamObservation);
-        downstreamObserver.onNext("message1");
-        upstreamObservation.cancel();
-      }
-    };
+    var inOrder = inOrder(upstreamObservation, downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(upstreamObservation);
+    inOrder.verify(downstreamObserver).onNext("message1");
+    inOrder.verify(upstreamObservation).cancel();
+    inOrder.verifyNoMoreInteractions();
   }
 }

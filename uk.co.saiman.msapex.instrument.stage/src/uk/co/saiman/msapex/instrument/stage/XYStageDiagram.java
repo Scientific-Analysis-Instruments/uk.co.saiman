@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -50,10 +50,10 @@ import uk.co.saiman.measurement.coordinate.XYCoordinate;
  */
 public abstract class XYStageDiagram extends StageDiagram<XYCoordinate<Length>> {
   @Override
-  public abstract XYStage getStageDevice();
+  public abstract XYStage<?> getStageDevice();
 
   protected void initialize() {
-    XYStage stageDevice = getStageDevice();
+    XYStage<?> stageDevice = getStageDevice();
     initialize(metre().micro().getUnit());
 
     XYCoordinate<Length> lower = getCoordinatesAtStageLocation(stageDevice.getLowerBound());

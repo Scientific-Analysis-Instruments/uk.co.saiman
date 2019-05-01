@@ -1,0 +1,180 @@
+/*
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ *          ______         ___      ___________
+ *       ,'========\     ,'===\    /========== \
+ *      /== \___/== \  ,'==.== \   \__/== \___\/
+ *     /==_/____\__\/,'==__|== |     /==  /
+ *     \========`. ,'========= |    /==  /
+ *   ___`-___)== ,'== \____|== |   /==  /
+ *  /== \__.-==,'==  ,'    |== '__/==  /_
+ *  \======== /==  ,'      |== ========= \
+ *   \_____\.-\__\/        \__\\________\/
+ *
+ * This file is part of uk.co.saiman.experiment.scheduling.
+ *
+ * uk.co.saiman.experiment.scheduling is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * uk.co.saiman.experiment.scheduling is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package uk.co.saiman.experiment.schedule.conflicts;
+
+import static java.util.function.Function.identity;
+import static java.util.function.Predicate.not;
+import static java.util.stream.Collectors.toMap;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+import uk.co.saiman.data.resource.Resource;
+import uk.co.saiman.experiment.path.ExperimentPath;
+import uk.co.saiman.experiment.path.ExperimentPath.Absolute;
+import uk.co.saiman.experiment.procedure.Conductor;
+import uk.co.saiman.experiment.procedure.Instruction;
+import uk.co.saiman.experiment.procedure.Procedure;
+import uk.co.saiman.experiment.procedure.RequirementResolutionContext;
+import uk.co.saiman.experiment.procedure.Requirements;
+import uk.co.saiman.experiment.product.Production;
+import uk.co.saiman.experiment.schedule.Products;
+import uk.co.saiman.experiment.schedule.Schedule;
+import uk.co.saiman.experiment.schedule.ScheduledInstruction;
+
+public class Conflicts {
+  private final Schedule schedule;
+  private final Map<ExperimentPath<Absolute>, Change> differences;
+
+  public Conflicts(Schedule schedule) {
+    this.schedule = schedule;
+
+    this.differences = new HashMap<>();
+    schedule.getProcedure().instructions().forEach(this::checkDifference);
+    schedule
+        .currentProducts()
+        .map(Products::getProcedure)
+        .stream()
+        .flatMap(Procedure::instructions)
+        .filter(path -> schedule.getProcedure().instruction(path).isEmpty())
+        .forEach(this::checkDifference);
+  }
+
+  public boolean isConflictFree() {
+    return changes().allMatch(not(Change::isConflicting));
+  }
+
+  public Stream<Change> changes() {
+    return differences.values().stream();
+  }
+
+  public Optional<Change> change(ExperimentPath<Absolute> path) {
+    return Optional.ofNullable(differences.get(path));
+  }
+
+  private void checkDifference(ExperimentPath<Absolute> experimentPath) {
+    differences.put(experimentPath, new ChangeImpl(experimentPath));
+  }
+
+  public class ChangeImpl implements Change {
+    private final ExperimentPath<Absolute> path;
+
+    private final Optional<Instruction> previousInstruction;
+    private final Optional<ScheduledInstruction> scheduledInstruction;
+
+    public ChangeImpl(ExperimentPath<Absolute> path) {
+      this.path = path;
+
+      this.previousInstruction = schedule
+          .currentProducts()
+          .map(Products::getProcedure)
+          .flatMap(p -> p.instruction(path));
+      this.scheduledInstruction = schedule.scheduledInstruction(path);
+    }
+
+    @Override
+    public ExperimentPath<Absolute> path() {
+      return path;
+    }
+
+    @Override
+    public Optional<Instruction> currentInstruction() {
+      return previousInstruction;
+    }
+
+    @Override
+    public Optional<Instruction> scheduledInstruction() {
+      return scheduledInstruction.map(ScheduledInstruction::instruction);
+    }
+
+    @Override
+    public boolean isConflicting() {
+      try {
+        return conflictingInstruction().isPresent()
+            || conflictingResources().findAny().isPresent()
+            || conflictingDependencies().findAny().isPresent();
+      } catch (IOException e) {
+        return true;
+      }
+    }
+
+    @Override
+    public Stream<Resource> conflictingResources() throws IOException {
+      return currentInstruction().isEmpty()
+          ? schedule
+              .getScheduler()
+              .getStorageConfiguration()
+              .locateStorage(path)
+              .location()
+              .resources()
+          : Stream.empty();
+    }
+
+    @Override
+    public Optional<Instruction> conflictingInstruction() {
+      return previousInstruction
+          .filter(
+              state -> scheduledInstruction
+                  .map(ScheduledInstruction::instruction)
+                  .filter(state::equals)
+                  .isEmpty());
+    }
+
+    @Override
+    public Stream<Change> conflictingDependencies() {
+      return scheduledInstruction
+          .map(ScheduledInstruction::conductor)
+          .stream()
+          .flatMap(Conductor::indirectRequirements)
+          .flatMap(this::resolveDependencies)
+          .collect(toMap(Change::path, identity(), (a, b) -> a))
+          .values()
+          .stream();
+    }
+
+    private Stream<Change> resolveDependencies(Requirements requirement) {
+      return requirement
+          .dependencies(new RequirementResolutionContext() {})
+          .flatMap(dependency -> dependency.resolveAgainst(path).stream())
+          .flatMap(
+              path -> conflictingDependency(path, requirement.requirement().production()).stream());
+    }
+
+    private Optional<Change> conflictingDependency(
+        ExperimentPath<Absolute> dependency,
+        Production<?> production) {
+      return change(dependency)
+          .filter(
+              c -> c.isConflicting()
+                  || production.isPresent(c.scheduledInstruction().get().conductor()));
+    }
+  }
+}

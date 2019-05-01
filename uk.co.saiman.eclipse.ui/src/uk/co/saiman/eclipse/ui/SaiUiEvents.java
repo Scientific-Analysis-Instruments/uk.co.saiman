@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -33,10 +33,27 @@ public class SaiUiEvents {
   public class Cell {
     private Cell() {}
 
-    public static final String TOPIC_CONTRIBUTIONS = "org/eclipse/e4/ui/model/ui/Cell/contributions/*";
-
     public static final String TOPIC_POPUP_MENU = "org/eclipse/e4/ui/model/ui/Cell/popupMenu/*";
 
-    public static final String POPUP_MENU = "popupMenu";
+    public static final String TOPIC_EXPANDED = "org/eclipse/e4/ui/model/ui/Cell/expanded/*";
+    public static final String EXPANDED = "expanded";
+
+    public static final String TOPIC_NULLABLE = "org/eclipse/e4/ui/model/ui/Cell/nullable/*";
+    public static final String NULLABLE = "nullable";
+
+    public static final String TOPIC_CONTEXT_VALUE = "org/eclipse/e4/ui/model/ui/Cell/contextValue/*";
+    public static final String CONTEXT_VALUE = "contextValue";
+  }
+
+  public class EditableCell {
+    public static final String TOPIC_EDITING = "org/eclipse/e4/ui/model/ui/EditableCell/editing/*";
+    public static final String EDITING = "editing";
+  }
+
+  public class Tree {
+    private Tree() {}
+
+    public static final String TOPIC_EDITABLE = "org/eclipse/e4/ui/model/ui/Cell/editable/*";
+    public static final String EDITABLE = "editable";
   }
 }

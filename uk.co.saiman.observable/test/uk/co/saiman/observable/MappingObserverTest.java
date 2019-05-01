@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,17 +27,21 @@
  */
 package uk.co.saiman.observable;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.inOrder;
 
-import mockit.FullVerificationsInOrder;
-import mockit.Injectable;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @SuppressWarnings("javadoc")
+@ExtendWith(MockitoExtension.class)
 public class MappingObserverTest {
-  @Injectable
+  @Mock
   Observation upstreamObservation;
 
-  @Injectable
+  @Mock
   Observer<String> downstreamObserver;
 
   @Test
@@ -50,19 +54,17 @@ public class MappingObserverTest {
     test.onNext("three");
     test.onNext("four");
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve(upstreamObservation);
-        downstreamObserver.onNext("one!");
-        downstreamObserver.onNext("two!");
-        downstreamObserver.onNext("three!");
-        downstreamObserver.onNext("four!");
-      }
-    };
+    var inOrder = inOrder(downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(upstreamObservation);
+    inOrder.verify(downstreamObserver).onNext("one!");
+    inOrder.verify(downstreamObserver).onNext("two!");
+    inOrder.verify(downstreamObserver).onNext("three!");
+    inOrder.verify(downstreamObserver).onNext("four!");
+    inOrder.verifyNoMoreInteractions();
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void nullMappingTest() {
-    new MappingObserver<>(downstreamObserver, null);
+    assertThrows(NullPointerException.class, () -> new MappingObserver<>(downstreamObserver, null));
   }
 }

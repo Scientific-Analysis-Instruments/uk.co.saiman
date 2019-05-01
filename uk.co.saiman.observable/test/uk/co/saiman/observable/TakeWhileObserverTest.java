@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,17 +27,22 @@
  */
 package uk.co.saiman.observable;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
 
-import mockit.FullVerificationsInOrder;
-import mockit.Injectable;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @SuppressWarnings("javadoc")
+@ExtendWith(MockitoExtension.class)
 public class TakeWhileObserverTest {
-  @Injectable
+  @Mock
   Observation upstreamObservation;
 
-  @Injectable
+  @Mock
   Observer<String> downstreamObserver;
 
   @Test
@@ -47,13 +52,11 @@ public class TakeWhileObserverTest {
     test.onObserve(upstreamObservation);
     test.onNext("message");
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        downstreamObserver.onComplete();
-        upstreamObservation.cancel();
-      }
-    };
+    var inOrder = inOrder(upstreamObservation, downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(downstreamObserver).onComplete();
+    inOrder.verify(upstreamObservation).cancel();
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -63,12 +66,10 @@ public class TakeWhileObserverTest {
     test.onObserve(upstreamObservation);
     test.onNext("message");
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        downstreamObserver.onNext("message");
-      }
-    };
+    var inOrder = inOrder(upstreamObservation, downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(downstreamObserver).onNext("message");
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -79,14 +80,12 @@ public class TakeWhileObserverTest {
     test.onNext("pass");
     test.onNext("fail");
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        downstreamObserver.onNext("pass");
-        downstreamObserver.onComplete();
-        upstreamObservation.cancel();
-      }
-    };
+    var inOrder = inOrder(upstreamObservation, downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(downstreamObserver).onNext("pass");
+    inOrder.verify(downstreamObserver).onComplete();
+    inOrder.verify(upstreamObservation).cancel();
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -97,17 +96,17 @@ public class TakeWhileObserverTest {
     test.onNext("fail");
     test.onNext("pass");
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        downstreamObserver.onComplete();
-        upstreamObservation.cancel();
-      }
-    };
+    var inOrder = inOrder(upstreamObservation, downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(downstreamObserver).onComplete();
+    inOrder.verify(upstreamObservation).cancel();
+    inOrder.verifyNoMoreInteractions();
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void nullTakeFilterTest() {
-    new TakeWhileObserver<>(downstreamObserver, null);
+    assertThrows(
+        NullPointerException.class,
+        () -> new TakeWhileObserver<>(downstreamObserver, null));
   }
 }

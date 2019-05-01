@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,12 +27,11 @@
  */
 package uk.co.saiman.eclipse.model.ui.provider.editor;
 
-import static java.util.stream.Collectors.toList;
+import static org.eclipse.e4.tools.emf.ui.internal.common.ModelEditor.VIRTUAL_HANDLER;
 import static uk.co.saiman.eclipse.model.ui.Package.eINSTANCE;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
@@ -45,11 +44,10 @@ import org.eclipse.core.databinding.property.list.IListProperty;
 import org.eclipse.core.databinding.property.value.IValueProperty;
 import org.eclipse.e4.tools.emf.ui.common.Util;
 import org.eclipse.e4.tools.emf.ui.internal.ResourceProvider;
-import org.eclipse.e4.tools.emf.ui.internal.common.E4StringPickList;
 import org.eclipse.e4.tools.emf.ui.internal.common.VirtualEntry;
 import org.eclipse.e4.tools.emf.ui.internal.common.component.ControlFactory;
-import org.eclipse.e4.tools.emf.ui.internal.common.component.ControlFactory.TextPasteHandler;
 import org.eclipse.e4.ui.model.application.MContribution;
+import org.eclipse.e4.ui.model.application.commands.impl.CommandsPackageImpl;
 import org.eclipse.e4.ui.model.application.ui.MUIElement;
 import org.eclipse.e4.ui.model.application.ui.MUiFactory;
 import org.eclipse.e4.ui.model.application.ui.impl.UiPackageImpl;
@@ -58,14 +56,11 @@ import org.eclipse.e4.ui.model.application.ui.menu.MPopupMenu;
 import org.eclipse.emf.common.command.Command;
 import org.eclipse.emf.databinding.EMFDataBindingContext;
 import org.eclipse.emf.databinding.EMFProperties;
-import org.eclipse.emf.databinding.IEMFListProperty;
 import org.eclipse.emf.databinding.IEMFValueProperty;
 import org.eclipse.emf.databinding.edit.EMFEditProperties;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-import org.eclipse.emf.edit.command.AddCommand;
-import org.eclipse.emf.edit.command.RemoveCommand;
 import org.eclipse.emf.edit.command.SetCommand;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.databinding.swt.IWidgetValueProperty;
@@ -75,11 +70,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ComboViewer;
 import org.eclipse.jface.viewers.LabelProvider;
-import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.KeyAdapter;
-import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
@@ -87,9 +78,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
 
-import uk.co.saiman.data.format.MediaType;
 import uk.co.saiman.eclipse.model.ui.Cell;
 import uk.co.saiman.eclipse.model.ui.Package;
 import uk.co.saiman.eclipse.model.ui.provider.editor.ListComponentManager.Type;
@@ -104,10 +93,8 @@ public class CellEditor extends AbstractEditor {
   private ListComponentManager childrenComponent;
 
   @SuppressWarnings("rawtypes")
-  private final IListProperty CONTRIBUTIONS = EMFProperties
-      .list(Package.eINSTANCE.getCell_Contributions());
-
-  private static final String VIRTUAL_CELL_CONTRIBUTIONS_MENU = "uk.co.saiman.eclipse.model.ui.cell.contributions.virtual";
+  private final IListProperty HANDLER_CONTAINER__HANDLERS = EMFProperties
+      .list(CommandsPackageImpl.Literals.HANDLER_CONTAINER__HANDLERS);
 
   @SuppressWarnings("unchecked")
   private static final IValueProperty<Cell, ?> POPUP_MENU = EMFProperties
@@ -130,7 +117,11 @@ public class CellEditor extends AbstractEditor {
         new Type(
             getString("_UI_HandledCell_type"),
             ImageDescriptor.createFromFile(VListEditor.class, "/icons/full/obj16/HandledCell.gif"),
-            eINSTANCE.getHandledCell()));
+            eINSTANCE.getHandledCell()),
+        new Type(
+            getString("_UI_EditableCell_type"),
+            ImageDescriptor.createFromFile(VListEditor.class, "/icons/full/obj16/EditableCell.gif"),
+            eINSTANCE.getEditableCell()));
 
     addExpression = new Action(
         Messages.MenuItemEditor_AddCoreExpression,
@@ -201,12 +192,36 @@ public class CellEditor extends AbstractEditor {
     createElementIdControl(parent, context, master, textProp);
     createLabelControls(parent, context, master, textProp);
     createContributionControl(parent, context);
-    createVisibleWhenControl(parent, context);
-    createEditableControl(parent, context);
+    createRenderingControls(parent, context);
     createPopupMenuControl(parent);
     createChildrenControl(parent);
-    createMediaTypesControl(parent);
     createPersistedStateControl(parent);
+    createContextPropertiesControl(parent);
+  }
+
+  protected void createRenderingControls(Composite parent, EMFDataBindingContext context) {
+    createVisibleWhenControl(parent, context);
+
+    ControlFactory
+        .createCheckBox(
+            parent,
+            Messages.ModelTooling_UIElement_Visible,
+            getMaster(),
+            context,
+            WidgetProperties.selection(),
+            EMFEditProperties
+                .value(getEditingDomain(), UiPackageImpl.Literals.UI_ELEMENT__VISIBLE));
+
+    ControlFactory
+        .createCheckBox(
+            parent,
+            Messages.ModelTooling_UIElement_ToBeRendered,
+            getMaster(),
+            context,
+            WidgetProperties.selection(),
+            EMFEditProperties
+                .value(getEditingDomain(), UiPackageImpl.Literals.UI_ELEMENT__TO_BE_RENDERED));
+
   }
 
   @SuppressWarnings("unchecked")
@@ -248,25 +263,14 @@ public class CellEditor extends AbstractEditor {
             EMFEditProperties
                 .value(getEditingDomain(), UiPackageImpl.Literals.UI_ELEMENT__VISIBLE_WHEN)
                 .observeDetail(getMaster()),
-            new UpdateValueStrategy().setConverter(new EClass2EObject()),
-            new UpdateValueStrategy().setConverter(new EObject2EClass()));
+            new UpdateValueStrategy<>().setConverter(new EClass2EObject()),
+            new UpdateValueStrategy<>().setConverter(new EObject2EClass()));
   }
 
   @SuppressWarnings("unchecked")
   protected void createChildrenControl(Composite parent) {
     childrenComponent.createForm(parent);
     childrenComponent.getViewer().setInput(CHILDREN.observeDetail(getMaster()));
-  }
-
-  protected void createEditableControl(Composite parent, EMFDataBindingContext context) {
-    ControlFactory
-        .createCheckBox(
-            parent,
-            getString("_UI_Cell_editable_feature"),
-            getMaster(),
-            context,
-            WidgetProperties.selection(),
-            EMFEditProperties.value(getEditingDomain(), eINSTANCE.getCell_Editable()));
   }
 
   protected void createPopupMenuControl(Composite parent) {
@@ -309,111 +313,6 @@ public class CellEditor extends AbstractEditor {
     }
   }
 
-  @SuppressWarnings("unchecked")
-  protected void createMediaTypesControl(Composite parent) {
-    final E4StringPickList pickList = new E4StringPickList(
-        parent,
-        SWT.NONE,
-        null,
-        Messages,
-        this,
-        eINSTANCE.getCell_MediaTypes()) {
-      @Override
-      protected void addPressed() {
-        handleAddMediaType(getTextWidget());
-      }
-
-      @Override
-      protected void handleReplaceText() {
-        handleReplaceMediaType(getTextWidget(), (StructuredSelection) viewer.getSelection());
-      }
-    };
-
-    pickList.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
-    pickList.setText(getString("_UI_Cell_mediaTypes_feature"));
-    pickList.setLabelProvider(new LabelProvider() {
-      @Override
-      public String getText(Object element) {
-        return element.toString();
-      }
-    });
-
-    final Text t = pickList.getTextWidget();
-    t.addKeyListener(new KeyAdapter() {
-      @Override
-      public void keyPressed(KeyEvent e) {
-        if (e.keyCode == SWT.CR || e.keyCode == SWT.LF) {
-          handleAddMediaType(t);
-        }
-      }
-    });
-
-    TextPasteHandler.createFor(t);
-
-    TableViewer viewer = pickList.getList();
-    viewer.setLabelProvider(new LabelProvider());
-    GridData gd = (GridData) viewer.getTable().getLayoutData();
-    gd.heightHint = 150;
-
-    IEMFListProperty prop = EMFProperties.list(eINSTANCE.getCell_MediaTypes());
-    viewer.setInput(prop.observeDetail(getMaster()));
-
-    viewer.addSelectionChangedListener(event -> {
-      MediaType itemSelected = (MediaType) ((StructuredSelection) event.getSelection())
-          .getFirstElement();
-      t.setText(itemSelected != null ? itemSelected.toString() : ""); //$NON-NLS-1$
-    });
-  }
-
-  private List<MediaType> getMediaTypes(Text tagText) {
-    return Stream
-        .of(tagText.getText().split(","))
-        .map(String::trim)
-        .filter(s -> !s.isEmpty())
-        .map(MediaType::valueOf)
-        .collect(toList());
-  }
-
-  private void handleReplaceMediaType(Text tagText, StructuredSelection selection) {
-    Cell cell = (Cell) getMaster().getValue();
-
-    @SuppressWarnings("unchecked")
-    List<MediaType> itemsSelected = selection.toList();
-    MediaType itemSelected = (MediaType) selection.getFirstElement();
-    int selectionIndex = cell.getMediaTypes().indexOf(itemSelected);
-
-    List<MediaType> mediaTypes = getMediaTypes(tagText);
-
-    Command cmdRemove = RemoveCommand
-        .create(getEditingDomain(), cell, eINSTANCE.getCell_MediaTypes(), itemsSelected);
-    Command cmdInsert = AddCommand
-        .create(
-            getEditingDomain(),
-            cell,
-            eINSTANCE.getCell_MediaTypes(),
-            mediaTypes,
-            selectionIndex);
-    if (cmdRemove.canExecute() && cmdInsert.canExecute()) {
-      getEditingDomain().getCommandStack().execute(cmdRemove);
-      getEditingDomain().getCommandStack().execute(cmdInsert);
-    }
-    tagText.setText(""); //$NON-NLS-1$
-  }
-
-  private void handleAddMediaType(Text tagText) {
-    List<MediaType> mediaTypes = getMediaTypes(tagText);
-
-    if (!mediaTypes.isEmpty()) {
-      final Cell cell = (Cell) getMaster().getValue();
-      final Command cmd = AddCommand
-          .create(getEditingDomain(), cell, eINSTANCE.getCell_MediaTypes(), mediaTypes);
-      if (cmd.canExecute()) {
-        getEditingDomain().getCommandStack().execute(cmd);
-      }
-      tagText.setText(""); //$NON-NLS-1$
-    }
-  }
-
   @Override
   protected void createSupplementaryControls(Composite parent) {
     createContextVariablesControl(parent);
@@ -442,14 +341,16 @@ public class CellEditor extends AbstractEditor {
     list
         .add(
             new VirtualEntry<Object>(
-                VIRTUAL_CELL_CONTRIBUTIONS_MENU,
-                CONTRIBUTIONS,
+                VIRTUAL_HANDLER,
+                HANDLER_CONTAINER__HANDLERS,
                 element,
-                getString("_UI_contributions")) {
+                Messages.PartEditor_Handlers) {
+
               @Override
               protected boolean accepted(Object o) {
                 return true;
               }
+
             });
 
     list.addAll(CHILDREN.getList(element));
@@ -498,7 +399,7 @@ public class CellEditor extends AbstractEditor {
     return list;
   }
 
-  class EObject2EClass extends Converter {
+  class EObject2EClass extends Converter<Object, Object> {
     public EObject2EClass() {
       super(EObject.class, EClass.class);
     }
@@ -512,7 +413,7 @@ public class CellEditor extends AbstractEditor {
     }
   }
 
-  class EClass2EObject extends Converter {
+  class EClass2EObject extends Converter<Object, Object> {
     public EClass2EObject() {
       super(EClass.class, EObject.class);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -41,12 +41,14 @@ import uk.co.saiman.instrument.sample.SampleDevice;
 
 public class RequestExchangeHandler {
   @Execute
-  void execute(IEclipseContext context, SampleDevice<?> device, EventBroker eventBroker) {
-    device.requestExchange();
+  void execute(IEclipseContext context, SampleDevice<?, ?> device, EventBroker eventBroker) {
+    try (var control = device.acquireControl()) {
+      control.requestExchange();
+    }
   }
 
   @CanExecute
-  boolean canExecute(@Optional SampleDevice<?> device) {
+  boolean canExecute(@Optional SampleDevice<?, ?> device) {
     return device != null
         && device
             .sampleState()

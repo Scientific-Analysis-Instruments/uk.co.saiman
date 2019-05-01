@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,8 +27,14 @@
  */
 package uk.co.saiman.observable;
 
+import java.util.function.BiConsumer;
+
 public interface OwnedMessage<O, M> {
   O owner();
 
   M message();
+
+  default void apply(BiConsumer<? super O, ? super M> action) {
+    action.accept(owner(), message());
+  }
 }

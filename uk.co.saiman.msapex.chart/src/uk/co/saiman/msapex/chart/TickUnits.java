@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -37,7 +37,7 @@ import javax.measure.Quantity;
  * 
  * @author Elias N Vasylenko
  *
- * @param <T>
+ * @param <T> the quantity type of the tick unit
  */
 public interface TickUnits<T extends Quantity<T>> {
   TickUnit<T> getUnitBelow(double valueAbove);

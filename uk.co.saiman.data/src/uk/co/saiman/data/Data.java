@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,7 +27,10 @@
  */
 package uk.co.saiman.data;
 
+import java.io.IOException;
+
 import uk.co.saiman.data.format.DataFormat;
+import uk.co.saiman.data.resource.Location;
 import uk.co.saiman.data.resource.Resource;
 
 /**
@@ -36,11 +39,28 @@ import uk.co.saiman.data.resource.Resource;
  * 
  * @author Elias N Vasylenko
  *
- * @param <T>
- *          the type of the data object
+ * @param <T> the type of the data object
  */
 public interface Data<T> {
+  static <T> Data<T> locate(Resource resource, DataFormat<T> format) {
+    return new SimpleData<>(resource, format);
+  }
+
+  static <T> Data<T> locate(Location location, String name, DataFormat<T> format) {
+    try {
+      return new SimpleData<>(location.getResource(name, format.getExtension()), format);
+    } catch (IOException e) {
+      throw new DataException("Failed to prepare location", e);
+    }
+  }
+
   Resource getResource();
+
+  void relocate(Resource resource) throws DataException;
+
+  void relocate(Location location) throws DataException;
+
+  void relocate(Location location, String name) throws DataException;
 
   DataFormat<T> getFormat();
 

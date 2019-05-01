@@ -20,59 +20,66 @@
    </license>
 
    <requires>
-      <import plugin="org.eclipse.core.runtime"/>
       <import plugin="org.eclipse.emf.ecore"/>
       <import plugin="org.eclipse.e4.ui.model.workbench"/>
       <import plugin="org.eclipse.emf.edit"/>
+      <import plugin="org.eclipse.core.runtime"/>
    </requires>
 
    <plugin
-         id="uk.co.saiman.reflection"
+         id="uk.co.saiman.bytes"
          download-size="0"
          install-size="0"
-         version="0.0.1.201808221517"
-         unpack="false"/>
-
-   <plugin
-         id="uk.co.saiman.data"
-         download-size="0"
-         install-size="0"
-         version="0.0.1.201808281027"
-         unpack="false"/>
-
-   <plugin
-         id="uk.co.saiman.utilities"
-         download-size="0"
-         install-size="0"
-         version="0.0.1.201808221517"
-         unpack="false"/>
-
-   <plugin
-         id="uk.co.saiman.eclipse.ui"
-         download-size="0"
-         install-size="0"
-         version="0.0.1.201808311546"
+         version="0.0.1.201902111214"
          unpack="false"/>
 
    <plugin
          id="uk.co.saiman.collections"
          download-size="0"
          install-size="0"
-         version="0.0.1.201808221517"
+         version="0.0.1.201902111214"
+         unpack="false"/>
+
+   <plugin
+         id="uk.co.saiman.utilities"
+         download-size="0"
+         install-size="0"
+         version="0.0.1.201902111109"
+         unpack="false"/>
+
+   <plugin
+         id="uk.co.saiman.data"
+         download-size="0"
+         install-size="0"
+         version="0.0.1.201902111214"
          unpack="false"/>
 
    <plugin
          id="uk.co.saiman.eclipse.ui.edit"
          download-size="0"
          install-size="0"
-         version="0.0.1.201809040830"
+         version="0.0.1.201902111214"
+         unpack="false"/>
+
+   <plugin
+         id="uk.co.saiman.eclipse.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.1.201902111214"
          unpack="false"/>
 
    <plugin
          id="uk.co.saiman.reflection.token"
          download-size="0"
          install-size="0"
-         version="0.0.1.201808221517"
+         version="0.0.1.201902111214"
+         unpack="false"/>
+
+   <plugin
+         id="uk.co.saiman.reflection"
+         download-size="0"
+         install-size="0"
+         version="0.0.1.201902111214"
          unpack="false"/>
 
 </feature>

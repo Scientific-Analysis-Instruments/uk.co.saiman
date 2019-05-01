@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -34,6 +34,12 @@ import uk.co.saiman.webmodule.PackageId;
 import uk.co.saiman.webmodule.commonjs.PackageVersion;
 import uk.co.saiman.webmodule.semver.Version;
 
+/**
+ * A CommonJS registry package root. Contains all available versions of a
+ * package of a given name which exist in the registry.
+ * 
+ * @author Elias N Vasylenko
+ */
 public interface PackageRoot {
   PackageId getName();
 

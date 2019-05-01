@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -29,30 +29,41 @@ package uk.co.saiman.msapex.editor;
 
 import java.util.stream.Stream;
 
-import org.eclipse.e4.ui.model.application.ui.basic.MPart;
-
 public interface EditorService {
-  void registerProvider(EditorProvider provider);
+  void registerProvider(EditorProvider editorProvider);
 
-  void unregisterProvider(EditorProvider provider);
+  void unregisterProvider(EditorProvider editorProvider);
+
+  Stream<EditorProvider> getEditorProviders();
+
+  default Stream<EditorProvider> getEditorProviders(String contextKey) {
+    return getEditorProviders().filter(p -> p.getContextKey().equals(contextKey));
+  }
+
+  default Stream<EditorProvider> getEditorProviders(Class<?> contextKey) {
+    return getEditorProviders(contextKey.getName());
+  }
 
   /**
    * Get the available editors for a resource in order of precedence.
    * <p>
    * The strategy for determining the precedence is left to the implementer, but
    * generally it may be in order of the editors most recently
-   * {@link Editor#openPart() opened}.
+   * {@link Editor#getPart() opened}.
    * 
-   * @param resource
-   *          the resource data object to edit
+   * @param resource the resource data object to edit
    * @return The current editors applicable to the given resource in order of
    *         precedence.
    */
-  Stream<Editor> getApplicableEditors(Object resource);
+  default Stream<Editor> getApplicableEditors(String contextKey, Object contextValue) {
+    return getEditorProviders(contextKey)
+        .filter(p -> p.isApplicable(contextValue))
+        .map(p -> p.getEditorPart(contextValue));
+  }
 
-  Stream<EditorDescriptor> getEditors();
+  default <T> Stream<Editor> getApplicableEditors(Class<T> contextKey, T contextValue) {
+    return getApplicableEditors(contextKey.getName(), contextValue);
+  }
 
-  boolean isEditor(MPart part);
-
-  Object getResource(MPart part);
+  void open(Editor editor);
 }

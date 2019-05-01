@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -34,8 +34,8 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
-import uk.co.saiman.acquisition.AcquisitionDevice;
-import uk.co.saiman.experiment.spectrum.SpectrumExperimentType;
+import uk.co.saiman.experiment.spectrum.SpectrumConductor;
+import uk.co.saiman.instrument.acquisition.AcquisitionDevice;
 
 @Component(immediate = true)
 public class SpectrumExperimentAdapterFactory implements IAdapterFactory {
@@ -44,7 +44,7 @@ public class SpectrumExperimentAdapterFactory implements IAdapterFactory {
 
   @Activate
   public void register() {
-    adapterManager.registerAdapters(this, SpectrumExperimentType.class);
+    adapterManager.registerAdapters(this, SpectrumConductor.class);
   }
 
   @Deactivate
@@ -55,7 +55,7 @@ public class SpectrumExperimentAdapterFactory implements IAdapterFactory {
   @SuppressWarnings("unchecked")
   @Override
   public <T> T getAdapter(Object adaptableObject, Class<T> adapterType) {
-    SpectrumExperimentType<?> configuration = (SpectrumExperimentType<?>) adaptableObject;
+    SpectrumConductor configuration = (SpectrumConductor) adaptableObject;
 
     if (adapterType == AcquisitionDevice.class) {
       return (T) configuration.getAcquisitionDevice();

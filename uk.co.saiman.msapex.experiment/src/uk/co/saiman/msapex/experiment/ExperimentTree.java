@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -28,13 +28,17 @@
 package uk.co.saiman.msapex.experiment;
 
 import static java.util.stream.Collectors.toList;
-import static uk.co.saiman.experiment.WorkspaceEventState.COMPLETED;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
+import org.eclipse.e4.core.di.annotations.Optional;
+
 import uk.co.saiman.eclipse.ui.ChildrenService;
-import uk.co.saiman.experiment.ExperimentNode;
-import uk.co.saiman.experiment.Workspace;
+import uk.co.saiman.msapex.experiment.workspace.Workspace;
+import uk.co.saiman.msapex.experiment.workspace.WorkspaceExperiment;
+import uk.co.saiman.msapex.experiment.workspace.event.AddExperimentEvent;
+import uk.co.saiman.msapex.experiment.workspace.event.RemoveExperimentEvent;
 
 public class ExperimentTree {
   public static final String ID = "uk.co.saiman.msapex.experiment.tree";
@@ -43,19 +47,30 @@ public class ExperimentTree {
   private Workspace workspace;
 
   @Inject
-  void initialize(ChildrenService children) {
-    workspace
-        .events(COMPLETED)
-        .filter(e -> !e.getNode().getParent().isPresent())
-        .take(1)
-        .observe(m -> {
-          children.invalidate();
-        });
+  private ChildrenService children;
 
+  @PostConstruct
+  void initialize() {
+    updateChildren();
+  }
+
+  @Inject
+  @Optional
+  public void update(AddExperimentEvent event) {
+    updateChildren();
+  }
+
+  @Inject
+  @Optional
+  public void update(RemoveExperimentEvent event) {
+    updateChildren();
+  }
+
+  private void updateChildren() {
     children
         .setItems(
-            ExperimentNodeCell.ID,
-            ExperimentNode.class,
-            workspace.getExperiments().collect(toList()));
+            ExperimentCell.ID,
+            WorkspaceExperiment.class,
+            workspace.getWorkspaceExperiments().collect(toList()));
   }
 }

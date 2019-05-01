@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -39,9 +39,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.layout.BorderPane;
 import uk.co.saiman.eclipse.localization.Localize;
-import uk.co.saiman.experiment.Result;
-import uk.co.saiman.experiment.chemicalmap.ChemicalMap;
-import uk.co.saiman.experiment.chemicalmap.ChemicalMapProperties;
+import uk.co.saiman.msapex.experiment.chemicalmap.i18n.ChemicalMapProperties;
 
 public class ChemicalMapImageEditorPart {
   @Inject
@@ -50,9 +48,6 @@ public class ChemicalMapImageEditorPart {
 
   @Inject
   MDirtyable dirty;
-
-  @Inject
-  Result<ChemicalMap> result;
 
   @PostConstruct
   void postConstruct(BorderPane container, @LocalInstance FXMLLoader loaderProvider) {

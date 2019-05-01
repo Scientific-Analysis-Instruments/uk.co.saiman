@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -43,7 +43,7 @@ import org.eclipse.e4.ui.model.application.ui.menu.MMenuElement;
 import org.eclipse.e4.ui.model.application.ui.menu.MMenuFactory;
 import org.eclipse.fx.core.di.Service;
 
-import uk.co.saiman.acquisition.AcquisitionDevice;
+import uk.co.saiman.instrument.acquisition.AcquisitionDevice;
 
 /**
  * Track acquisition devices available through OSGi services and select which
@@ -55,15 +55,16 @@ public class AcquisitionDevicesMenu {
   @AboutToShow
   void aboutToShow(
       List<MMenuElement> items,
-      @Service List<AcquisitionDevice> available,
+      @Service List<AcquisitionDevice<?>> available,
       @Optional AcquisitionDeviceSelection selection) {
     if (selection == null)
       selection = new AcquisitionDeviceSelection();
 
-    Set<AcquisitionDevice> selectedDevices = selection.getSelectedDevices().collect(
-        toCollection(LinkedHashSet::new));
+    Set<AcquisitionDevice<?>> selectedDevices = selection
+        .getSelectedDevices()
+        .collect(toCollection(LinkedHashSet::new));
 
-    for (AcquisitionDevice module : available) {
+    for (AcquisitionDevice<?> module : available) {
       MDirectMenuItem moduleItem = MMenuFactory.INSTANCE.createDirectMenuItem();
       moduleItem.setLabel(module.getName());
       moduleItem.setType(ItemType.CHECK);
@@ -76,9 +77,10 @@ public class AcquisitionDevicesMenu {
           } else {
             selectedDevices.remove(module);
           }
-          context.modify(
-              AcquisitionDeviceSelection.class,
-              new AcquisitionDeviceSelection(selectedDevices));
+          context
+              .modify(
+                  AcquisitionDeviceSelection.class,
+                  new AcquisitionDeviceSelection(selectedDevices));
         }
       });
 

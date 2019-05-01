@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -67,15 +67,6 @@ public interface Factory extends EFactory {
   Tree createTree();
 
   /**
-   * Returns a new object of class '<em>Cell Contribution</em>'.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @return a new object of class '<em>Cell Contribution</em>'.
-   * @generated
-   */
-  CellContribution createCellContribution();
-
-  /**
    * Returns a new object of class '<em>Handled Cell</em>'.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
@@ -83,6 +74,15 @@ public interface Factory extends EFactory {
    * @generated
    */
   HandledCell createHandledCell();
+
+  /**
+   * Returns a new object of class '<em>Editable Cell</em>'.
+   * <!-- begin-user-doc -->
+   * <!-- end-user-doc -->
+   * @return a new object of class '<em>Editable Cell</em>'.
+   * @generated
+   */
+  EditableCell createEditableCell();
 
   /**
    * Returns the package supported by this factory.

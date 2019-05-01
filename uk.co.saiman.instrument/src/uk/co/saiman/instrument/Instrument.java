@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -47,11 +47,11 @@ public interface Instrument {
 
   ObservableValue<InstrumentLifecycleState> lifecycleState();
 
-  default Stream<? extends Device> getDevices() {
-    return getRegistrations().map(DeviceRegistration::getDevice);
+  default Stream<? extends Device<?>> getDevices() {
+    return getRegistrations().map(InstrumentRegistration::getDevice);
   }
 
-  Stream<? extends DeviceRegistration> getRegistrations();
+  Stream<? extends InstrumentRegistration> getRegistrations();
 
-  InstrumentRegistration registerDevice(Device device);
+  DeviceRegistration registerDevice(Device<?> device);
 }

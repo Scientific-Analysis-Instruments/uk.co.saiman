@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -66,6 +66,11 @@ public class PropertyResourceBundle implements PropertyResource {
     public String getLocation() {
       return location;
     }
+
+    @Override
+    public String toString() {
+      return location + "(" + classLoader + ")";
+    }
   }
 
   private static final String PROPERTIES_POSTFIX = "Properties";
@@ -81,10 +86,8 @@ public class PropertyResourceBundle implements PropertyResource {
   /**
    * Create a resource bundle with the given initial locale.
    * 
-   * @param accessor
-   *          the accessor class type
-   * @param resources
-   *          the resource locations
+   * @param accessor  the accessor class type
+   * @param resources the resource locations
    */
   public PropertyResourceBundle(
       Class<?> accessor,
@@ -151,8 +154,7 @@ public class PropertyResourceBundle implements PropertyResource {
   }
 
   /**
-   * @param name
-   *          the string to remove the postfix from
+   * @param name the string to remove the postfix from
    * @return the given string, with the simple class name {@link Properties}
    *         removed from the end, if present.
    */

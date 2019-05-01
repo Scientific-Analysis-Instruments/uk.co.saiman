@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,17 +27,20 @@
  */
 package uk.co.saiman.eclipse.ui.fx.impl;
 
+import static uk.co.saiman.eclipse.ui.SaiUiModel.PRIMARY_CONTEXT_KEY;
+
 import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.e4.core.services.adapter.Adapter;
 
-import javafx.event.Event;
 import javafx.scene.control.TreeItem;
 import javafx.scene.input.Dragboard;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import uk.co.saiman.eclipse.model.ui.Cell;
+import uk.co.saiman.eclipse.model.ui.EditableCell;
+import uk.co.saiman.eclipse.ui.SaiUiModel;
 import uk.co.saiman.eclipse.ui.TransferDestination;
 import uk.co.saiman.eclipse.ui.fx.TransferCellHandler;
 import uk.co.saiman.eclipse.ui.fx.TransferCellIn;
@@ -80,16 +83,11 @@ import uk.co.saiman.eclipse.ui.fx.TransferCellOut;
  * How does this tie in with copy/paste {@link Handler handlers}? Add handlers
  * which just forward to this system, or use handlers as the mechanism to
  * implement the system?
- * 
- * TODO Cells need to be {@link HandlerContainer handler containers}.
  */
 /**
  * @author Elias N Vasylenko
  */
 public class TreeItemImpl extends TreeItem<Cell> implements IAdaptable {
-  // current state
-  private boolean editable;
-
   // ui container
   private final BorderPane container;
 
@@ -104,23 +102,11 @@ public class TreeItemImpl extends TreeItem<Cell> implements IAdaptable {
   }
 
   public Object getData() {
-    String contextValue = getValue().getContextValue();
+    String contextValue = getValue().getProperties().get(PRIMARY_CONTEXT_KEY);
     if (contextValue == null) {
       return null;
     }
     return getValue().getContext().get(contextValue);
-  }
-
-  protected void updateValue() {
-    fireSyntheticValueChangedEvent();
-  }
-
-  /**
-   * Fire off an event to indicate that the value of the tree item has been
-   * mutated, without actually changing the value property.
-   */
-  private void fireSyntheticValueChangedEvent() {
-    Event.fireEvent(this, new TreeModificationEvent<>(valueChangedEvent(), this, getValue()));
   }
 
   public Stream<TreeItemImpl> getModularChildren() {
@@ -142,24 +128,21 @@ public class TreeItemImpl extends TreeItem<Cell> implements IAdaptable {
     return getValue().getContext().get(Adapter.class).adapt(data, adapter);
   }
 
-  boolean isEditable() {
-    return editable;
-  }
-
-  public void editingStarted(Runnable cancel) {
-    refreshContributions();
+  public void editingStarted() {
+    EditableCell cell = (EditableCell) getValue();
+    cell.getTags().remove(SaiUiModel.EDIT_CANCELED);
+    cell.setEditing(true);
   }
 
   public void editingComplete() {
-    refreshContributions();
+    EditableCell cell = (EditableCell) getValue();
+    cell.setEditing(false);
   }
 
   public void editingCancelled() {
-    refreshContributions();
-  }
-
-  private void refreshContributions() {
-    System.out.println("refresh cell " + getValue().getLabel());
+    EditableCell cell = (EditableCell) getValue();
+    cell.getTags().add(SaiUiModel.EDIT_CANCELED);
+    cell.setEditing(false);
   }
 
   TransferCellOut transferOut() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -37,6 +37,7 @@ import static uk.co.saiman.measurement.Units.second;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -48,6 +49,7 @@ import javax.measure.quantity.Time;
 import org.eclipse.e4.core.di.annotations.Optional;
 import org.eclipse.fx.core.di.LocalInstance;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
@@ -55,13 +57,13 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
-import uk.co.saiman.acquisition.AcquisitionDevice;
-import uk.co.saiman.acquisition.AcquisitionProperties;
 import uk.co.saiman.eclipse.localization.Localize;
+import uk.co.saiman.instrument.acquisition.AcquisitionDevice;
 import uk.co.saiman.msapex.chart.ContinuousFunctionChart;
 import uk.co.saiman.msapex.chart.ContinuousFunctionSeries;
 import uk.co.saiman.msapex.chart.MetricTickUnits;
 import uk.co.saiman.msapex.chart.QuantityAxis;
+import uk.co.saiman.msapex.instrument.acquisition.i18n.AcquisitionProperties;
 
 /**
  * An Eclipse part for management and display of acquisition devices.
@@ -80,8 +82,8 @@ public class AcquisitionPart {
   @FXML
   private Label noSelectionLabel;
 
-  private Set<AcquisitionDevice> currentSelection;
-  private Map<AcquisitionDevice, ContinuousFunctionChart<Time, Dimensionless>> controllers = new HashMap<>();
+  private Set<AcquisitionDevice<?>> currentSelection;
+  private Map<AcquisitionDevice<?>, ContinuousFunctionChart<Time, Dimensionless>> controllers = new HashMap<>();
 
   @Inject
   @LocalInstance
@@ -92,17 +94,17 @@ public class AcquisitionPart {
     if (chartPane == null)
       return;
 
-    Set<AcquisitionDevice> newSelection = devices == null
+    Set<AcquisitionDevice<?>> newSelection = devices == null
         ? emptySet()
         : devices.getSelectedDevices().collect(toCollection(LinkedHashSet::new));
 
-    for (AcquisitionDevice oldDevice : currentSelection) {
+    for (AcquisitionDevice<?> oldDevice : List.copyOf(currentSelection)) {
       if (!newSelection.remove(oldDevice)) {
         deselectAcquisitionDevice(oldDevice);
         currentSelection.remove(oldDevice);
       }
     }
-    for (AcquisitionDevice newDevice : newSelection) {
+    for (AcquisitionDevice<?> newDevice : newSelection) {
       selectAcquisitionDevice(newDevice);
       currentSelection.add(newDevice);
     }
@@ -121,34 +123,39 @@ public class AcquisitionPart {
     noSelectionLabel.textProperty().bind(wrap(text.noDevicesSelected()));
   }
 
-  private void selectAcquisitionDevice(AcquisitionDevice acquisitionDevice) {
-    noSelectionLabel.setVisible(false);
+  private void selectAcquisitionDevice(AcquisitionDevice<?> acquisitionDevice) {
+    Platform.runLater(() -> {
+      noSelectionLabel.setVisible(false);
 
-    /*
-     * New chart controller for device
-     */
+      /*
+       * New chart controller for device
+       */
 
-    ContinuousFunctionChart<Time, Dimensionless> chartController = new ContinuousFunctionChart<Time, Dimensionless>(
-        new QuantityAxis<>(new MetricTickUnits<>(second())),
-        new QuantityAxis<>(new MetricTickUnits<>(count())).setPaddingApplied(true));
+      ContinuousFunctionChart<Time, Dimensionless> chartController = new ContinuousFunctionChart<Time, Dimensionless>(
+          new QuantityAxis<>(new MetricTickUnits<>(second())),
+          new QuantityAxis<>(new MetricTickUnits<>(count())).setPaddingApplied(true));
 
-    chartController.setTitle(acquisitionDevice.getName());
-    controllers.put(acquisitionDevice, chartController);
-    chartPane.getChildren().add(chartController);
-    HBox.setHgrow(chartController, Priority.ALWAYS);
+      chartController.setTitle(acquisitionDevice.getName());
+      controllers.put(acquisitionDevice, chartController);
+      chartPane.getChildren().add(chartController);
+      HBox.setHgrow(chartController, Priority.ALWAYS);
 
-    /*
-     * Add latest data to chart controller
-     */
-    ContinuousFunctionSeries<Time, Dimensionless> series = chartController.addSeries();
-    acquisitionDevice.dataEvents().observe(series::setContinuousFunction);
+      /*
+       * Add latest data to chart controller
+       */
+      ContinuousFunctionSeries<Time, Dimensionless> series = chartController.addSeries();
+      acquisitionDevice.dataEvents().observe(series::setContinuousFunction);
+    });
   }
 
-  private void deselectAcquisitionDevice(AcquisitionDevice acquisitionDevice) {
-    ContinuousFunctionChart<Time, Dimensionless> controller = controllers.remove(acquisitionDevice);
+  private void deselectAcquisitionDevice(AcquisitionDevice<?> acquisitionDevice) {
+    Platform.runLater(() -> {
+      ContinuousFunctionChart<Time, Dimensionless> controller = controllers
+          .remove(acquisitionDevice);
 
-    chartPane.getChildren().remove(controller);
+      chartPane.getChildren().remove(controller);
 
-    noSelectionLabel.setVisible(chartPane.getChildren().isEmpty());
+      noSelectionLabel.setVisible(chartPane.getChildren().isEmpty());
+    });
   }
 }

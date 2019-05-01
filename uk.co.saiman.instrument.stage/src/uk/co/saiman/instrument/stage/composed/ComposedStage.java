@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -46,22 +46,23 @@ import java.util.Set;
 import java.util.function.BinaryOperator;
 
 import uk.co.saiman.instrument.ConnectionState;
+import uk.co.saiman.instrument.DeviceImpl;
 import uk.co.saiman.instrument.DeviceRegistration;
-import uk.co.saiman.instrument.InstrumentRegistration;
 import uk.co.saiman.instrument.Instrument;
+import uk.co.saiman.instrument.InstrumentRegistration;
 import uk.co.saiman.instrument.sample.SampleState;
 import uk.co.saiman.instrument.stage.Stage;
 import uk.co.saiman.observable.Disposable;
 import uk.co.saiman.observable.ObservableProperty;
 import uk.co.saiman.observable.ObservableValue;
 
-public abstract class ComposedStage<T> implements Stage<T> {
+public abstract class ComposedStage<T, U extends ComposedStageControl<T>> extends DeviceImpl<U>
+    implements Stage<T, U> {
   enum Mode {
     ANALYSING, EXCHANGING
   }
 
-  private final String name;
-  private final InstrumentRegistration registration;
+  private final DeviceRegistration registration;
   private final Set<StageAxis<?>> axes;
 
   private final T analysisLocation;
@@ -82,7 +83,7 @@ public abstract class ComposedStage<T> implements Stage<T> {
       T analysisLocation,
       T exchangeLocation,
       StageAxis<?>... axes) {
-    this.name = name;
+    super(name);
     this.axes = new HashSet<>(asList(axes));
     this.analysisLocation = analysisLocation;
     this.exchangeLocation = exchangeLocation;
@@ -91,29 +92,26 @@ public abstract class ComposedStage<T> implements Stage<T> {
     this.connectionState = over(DISCONNECTED);
     this.sampleState = over(ANALYSIS_LOCATION_FAILED);
     this.requestedLocation = ObservableProperty.over(exchangeLocation);
-    this.requestedLocation.observe(l -> setRequestedLocation(ANALYSING, l));
+    this.requestedLocation.value().observe(l -> setRequestedLocation(ANALYSING, l));
     this.actualLocation = ObservableProperty.over(exchangeLocation);
 
     this.axisObservations = concat(
-        this.axes.stream().map(a -> a.axisState().observe(s -> updateState())),
-        this.axes.stream().map(a -> a.actualLocation().observe(p -> updateActualLocation())))
-            .collect(toList());
+        this.axes.stream().map(a -> a.axisState().value().observe(s -> updateState())),
+        this.axes
+            .stream()
+            .map(a -> a.actualLocation().value().observe(p -> updateActualLocation())))
+                .collect(toList());
 
     this.registration = instrument.registerDevice(this);
   }
 
   @Override
-  public String getName() {
-    return name;
-  }
-
-  @Override
-  public DeviceRegistration getRegistration() {
-    return registration.getDeviceRegistration();
+  public InstrumentRegistration getInstrumentRegistration() {
+    return registration.getInstrumentRegistration();
   }
 
   protected void dispose() {
-    registration.unregister();
+    registration.deregister();
     axisObservations.forEach(Disposable::cancel);
   }
 
@@ -169,50 +167,47 @@ public abstract class ComposedStage<T> implements Stage<T> {
   }
 
   @SafeVarargs
-  private final <U> BinaryOperator<U> precedence(U... precedence) {
+  private final <V> BinaryOperator<V> precedence(V... precedence) {
     return (a, b) -> {
-      for (U option : precedence)
+      for (V option : precedence)
         if (a == option || b == option)
           return option;
       return precedence[0];
     };
   }
 
-  @Override
-  public synchronized SampleState requestExchange() {
+  synchronized SampleState requestExchange() {
     if (mode != Mode.EXCHANGING) {
       setRequestedLocation(Mode.EXCHANGING, exchangeLocation);
 
-      return sampleState().filter(s -> EXCHANGE_REQUESTED != s).get();
+      return sampleState().value().filter(s -> EXCHANGE_REQUESTED != s).get();
     } else {
       return sampleState().get();
     }
   }
 
-  @Override
-  public synchronized SampleState requestAnalysis() {
+  synchronized SampleState requestAnalysis() {
     if (mode != Mode.ANALYSING) {
       setRequestedLocation(Mode.ANALYSING, analysisLocation);
 
-      return sampleState().filter(s -> ANALYSIS_LOCATION_REQUESTED != s).get();
+      return sampleState().value().filter(s -> ANALYSIS_LOCATION_REQUESTED != s).get();
     } else {
       return sampleState().get();
     }
   }
 
-  @Override
-  public synchronized SampleState requestAnalysisLocation(T location) {
+  synchronized SampleState requestAnalysisLocation(T location) {
     if (!isLocationReachable(location)) {
       throw new IllegalArgumentException("Location unreachable " + location);
     }
 
     setRequestedLocation(Mode.ANALYSING, location);
 
-    return sampleState().filter(s -> ANALYSIS_LOCATION_REQUESTED != s).get();
+    return sampleState().value().filter(s -> ANALYSIS_LOCATION_REQUESTED != s).get();
   }
 
-  public synchronized void setRequestedLocation(Mode mode, T location) {
-    if (getRegistration().isRegistered()) {
+  synchronized void setRequestedLocation(Mode mode, T location) {
+    if (getInstrumentRegistration().isRegistered()) {
       this.mode = mode;
       setRequestedLocationImpl(location);
     }

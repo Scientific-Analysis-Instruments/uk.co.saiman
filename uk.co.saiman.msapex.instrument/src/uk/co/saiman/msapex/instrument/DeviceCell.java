@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -39,10 +39,10 @@ public class DeviceCell {
   public static final String ID = "uk.co.saiman.msapex.instrument.cell.device";
 
   @Inject
-  public void prepare(HBox node, Cell cell, Device item) {
+  public void prepare(HBox node, Cell cell, Device<?> item) {
     cell.setLabel(item.getName());
 
-    item.connectionState().observe(state -> {
+    item.connectionState().value().observe(state -> {
       node.pseudoClassStateChanged(getPseudoClass(state.toString()), true);
       // cell.setIcon(iconFor(state));
       // TODO cell.setSupplemental(state.toString());

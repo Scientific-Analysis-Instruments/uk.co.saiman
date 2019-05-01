@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -32,6 +32,14 @@ import java.util.stream.Stream;
 import uk.co.saiman.webmodule.PackageId;
 import uk.co.saiman.webmodule.semver.Version;
 
+/**
+ * A CommonJS registry package version. Provides at least one {@link Resource
+ * resource} containing the module, but may contain multiple resources of
+ * different {@link ResourceType types}. Also provides the dependencies of the
+ * package version.
+ * 
+ * @author Elias N Vasylenko
+ */
 public interface PackageVersion {
   PackageId getName();
 

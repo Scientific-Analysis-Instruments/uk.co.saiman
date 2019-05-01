@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -31,7 +31,14 @@ import java.io.IOException;
 import java.util.stream.Stream;
 
 public interface Location {
-  Stream<Resource> getResources() throws IOException;
+  /**
+   * Get all resources at the location.
+   * 
+   * @return a stream of resources which {@link Resource#exists() exist} at the
+   *         location
+   * @throws IOException
+   */
+  Stream<Resource> resources() throws IOException;
 
   Resource getResource(String name) throws IOException;
 
@@ -42,10 +49,8 @@ public interface Location {
    * the name, so we cannot determine where to split the string. Because of this
    * the representation of a resource name is flattened to a single string.
    * 
-   * @param name
-   *          the name of the file
-   * @param extension
-   *          the extension of the file
+   * @param name      the name of the file
+   * @param extension the extension of the file
    * @return a resource with the derived name [name].[extension]
    * @throws IOException
    */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -44,8 +44,8 @@ public class PathLocation implements Location {
   }
 
   @Override
-  public Stream<Resource> getResources() throws IOException {
-    return Files.walk(path).map(PathResource::new);
+  public Stream<Resource> resources() throws IOException {
+    return Files.walk(path).filter(Files::isRegularFile).map(PathResource::new);
   }
 
   /**
@@ -59,6 +59,6 @@ public class PathLocation implements Location {
 
   @Override
   public String toString() {
-    return Path.class.getName() + ": " + path;
+    return Path.class.getSimpleName() + "(" + path + ")";
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,149 +27,97 @@
  */
 package uk.co.saiman.observable;
 
-import static org.hamcrest.core.IsInstanceOf.instanceOf;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.verify;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import mockit.Injectable;
-import mockit.Verifications;
-
-@SuppressWarnings("javadoc")
+@SuppressWarnings({ "javadoc", "unchecked" })
+@ExtendWith(MockitoExtension.class)
 public class ObservableTest {
-  Observable<String> upstreamObservable = a -> null;
-
-  @Injectable
-  Observer<String> downstreamObserver;
+  @Mock
+  Observable<String> upstreamObservable;
+  @Mock
+  Observer<Object> downstreamObserver;
+  Observable<String> downstreamObservable = a -> upstreamObservable.observe(a);
 
   @Test
   public void thenTest() {
-    upstreamObservable.then(m -> {});
+    downstreamObservable.then(m -> {}).observe(downstreamObserver);
 
-    new Verifications() {
-      {
-        upstreamObservable.observe(withArgThat(instanceOf(MultiplePassthroughObserver.class)));
-      }
-    };
+    verify(upstreamObservable).observe(isA(MultiplePassthroughObserver.class));
   }
 
   @Test
   public void thenAfterTest() {
-    upstreamObservable.thenAfter(m -> {});
+    downstreamObservable.thenAfter(m -> {}).observe(downstreamObserver);
 
-    new Verifications() {
-      {
-        upstreamObservable.observe(withArgThat(instanceOf(MultiplePassthroughObserver.class)));
-      }
-    };
-  }
-
-  @Test
-  public void retryingTest() {
-    upstreamObservable.retrying();
-
-    new Verifications() {
-      {
-        upstreamObservable.observe(withArgThat(instanceOf(RetryingObserver.class)));
-      }
-    };
+    verify(upstreamObservable).observe(isA(MultiplePassthroughObserver.class));
   }
 
   @Test
   public void softReferenceOwnedTest() {
-    upstreamObservable.softReference(new Object());
+    downstreamObservable.softReference(new Object()).observe(downstreamObserver);
 
-    new Verifications() {
-      {
-        upstreamObservable.observe(withArgThat(instanceOf(ReferenceOwnedObserver.class)));
-      }
-    };
+    verify(upstreamObservable).observe(isA(ReferenceOwnedObserver.class));
   }
 
   @Test
   public void softReferenceTest() {
-    upstreamObservable.softReference();
+    downstreamObservable.softReference().observe(downstreamObserver);
 
-    new Verifications() {
-      {
-        upstreamObservable.observe(withArgThat(instanceOf(ReferenceOwnedObserver.class)));
-      }
-    };
+    verify(upstreamObservable).observe(isA(ReferenceObserver.class));
   }
 
   @Test
   public void weakReferenceOwnedTest() {
-    upstreamObservable.weakReference(new Object());
+    downstreamObservable.weakReference(new Object()).observe(downstreamObserver);
 
-    new Verifications() {
-      {
-        upstreamObservable.observe(withArgThat(instanceOf(ReferenceOwnedObserver.class)));
-      }
-    };
+    verify(upstreamObservable).observe(isA(ReferenceOwnedObserver.class));
   }
 
   @Test
   public void weakReferenceTest() {
-    upstreamObservable.weakReference();
+    downstreamObservable.weakReference().observe(downstreamObserver);
 
-    new Verifications() {
-      {
-        upstreamObservable.observe(withArgThat(instanceOf(ReferenceOwnedObserver.class)));
-      }
-    };
+    verify(upstreamObservable).observe(isA(ReferenceObserver.class));
   }
 
   @Test
   public void executeOnTest() {
-    upstreamObservable.executeOn(r -> {});
+    downstreamObservable.executeOn(r -> {}).observe(downstreamObserver);
 
-    new Verifications() {
-      {
-        upstreamObservable.observe(withArgThat(instanceOf(ExecutorObserver.class)));
-      }
-    };
+    verify(upstreamObservable).observe(isA(ExecutorObserver.class));
   }
 
   @Test
   public void mapTest() {
-    upstreamObservable.map(s -> s);
+    downstreamObservable.map(s -> s).observe(downstreamObserver);
 
-    new Verifications() {
-      {
-        upstreamObservable.observe(withArgThat(instanceOf(MappingObserver.class)));
-      }
-    };
+    verify(upstreamObservable).observe(isA(MappingObserver.class));
   }
 
   @Test
   public void filterTest() {
-    upstreamObservable.filter(s -> true);
+    downstreamObservable.filter(s -> true).observe(downstreamObserver);
 
-    new Verifications() {
-      {
-        upstreamObservable.observe(withArgThat(instanceOf(FilteringObserver.class)));
-      }
-    };
+    verify(upstreamObservable).observe(isA(FilteringObserver.class));
   }
 
   @Test
   public void takeWhileTest() {
-    upstreamObservable.takeWhile(s -> true);
+    downstreamObservable.takeWhile(s -> true).observe(downstreamObserver);
 
-    new Verifications() {
-      {
-        upstreamObservable.observe(withArgThat(instanceOf(TakeWhileObserver.class)));
-      }
-    };
+    verify(upstreamObservable).observe(isA(TakeWhileObserver.class));
   }
 
   @Test
   public void dropWhileTest() {
-    upstreamObservable.dropWhile(s -> true);
+    downstreamObservable.dropWhile(s -> true).observe(downstreamObserver);
 
-    new Verifications() {
-      {
-        upstreamObservable.observe(withArgThat(instanceOf(DropWhileObserver.class)));
-      }
-    };
+    verify(upstreamObservable).observe(isA(DropWhileObserver.class));
   }
 }

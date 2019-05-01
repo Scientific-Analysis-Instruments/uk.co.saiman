@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,12 +27,18 @@
  */
 package uk.co.saiman.msapex.experiment;
 
-import static org.eclipse.e4.ui.services.IServiceConstants.ACTIVE_SELECTION;
+import javax.inject.Inject;
 
 import org.eclipse.e4.core.di.annotations.Execute;
 
-import uk.co.saiman.eclipse.adapter.AdaptNamed;
-import uk.co.saiman.experiment.ExperimentNode;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import uk.co.saiman.eclipse.dialog.DialogUtilities;
+import uk.co.saiman.eclipse.localization.Localize;
+import uk.co.saiman.log.Log;
+import uk.co.saiman.log.Log.Level;
+import uk.co.saiman.msapex.experiment.i18n.ExperimentProperties;
+import uk.co.saiman.msapex.experiment.workspace.WorkspaceExperiment;
 
 /**
  * Add an experiment to the workspace.
@@ -40,9 +46,27 @@ import uk.co.saiman.experiment.ExperimentNode;
  * @author Elias N Vasylenko
  */
 public class RunExperimentHandler {
+  @Inject
+  Log log;
+  @Inject
+  @Localize
+  ExperimentProperties text;
+
   @Execute
-  void execute(@AdaptNamed(ACTIVE_SELECTION) ExperimentNode<?, ?> experimentNode) {
-    if (experimentNode != null)
-      new Thread(experimentNode::process).start();
+  void execute(WorkspaceExperiment experiment) {
+    try {
+      experiment.experiment().getSchedule().proceed();
+
+    } catch (Exception e) {
+      log.log(Level.ERROR, e);
+
+      Alert alert = new Alert(AlertType.ERROR);
+      DialogUtilities.addStackTrace(alert, e);
+      alert.setTitle(text.openExperimentFailedDialog().toString());
+      alert.setHeaderText(text.openExperimentFailedText(experiment).toString());
+      alert.setContentText(text.openExperimentFailedDescription().toString());
+      alert.showAndWait();
+    }
+
   }
 }

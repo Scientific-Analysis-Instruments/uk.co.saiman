@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -240,7 +240,7 @@ public abstract class AbstractEditor extends AbstractComponentEditor {
       final Button b = new Button(parent, SWT.PUSH | SWT.FLAT);
       b.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, false, false));
       b.setImage(createImage(ResourceProvider.IMG_Obj16_zoom));
-      b.setText(Messages.ModelTooling_Common_FindEllipsis);
+      b.setText(getString("_UI_FindEllipsis"));
       b.addSelectionListener(new SelectionAdapter() {
         @Override
         public void widgetSelected(SelectionEvent e) {
@@ -279,6 +279,17 @@ public abstract class AbstractEditor extends AbstractComponentEditor {
             this,
             Messages.ModelTooling_Contribution_PersistedState,
             ApplicationPackageImpl.Literals.APPLICATION_ELEMENT__PERSISTED_STATE,
+            VERTICAL_LIST_WIDGET_INDENT);
+  }
+
+  protected void createContextPropertiesControl(Composite parent) {
+    ControlFactory
+        .createMapProperties(
+            parent,
+            Messages,
+            this,
+            Messages.ModelTooling_Context_Properties,
+            UiPackageImpl.Literals.CONTEXT__PROPERTIES,
             VERTICAL_LIST_WIDGET_INDENT);
   }
 

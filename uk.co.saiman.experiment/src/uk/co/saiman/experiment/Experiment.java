@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,10 +27,109 @@
  */
 package uk.co.saiman.experiment;
 
-import static java.util.stream.Collectors.toList;
+import static java.util.Objects.requireNonNull;
 
-public interface Experiment extends ExperimentNode<ExperimentConfiguration, Void> {
-  default int getIndex() {
-    return getWorkspace().getExperiments().collect(toList()).indexOf(this);
+import java.lang.ref.Reference;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NavigableSet;
+import java.util.TreeSet;
+import java.util.function.Function;
+import java.util.stream.Stream;
+
+import uk.co.saiman.experiment.event.ExperimentEvent;
+import uk.co.saiman.experiment.path.ExperimentPath;
+import uk.co.saiman.experiment.path.ExperimentPath.Absolute;
+import uk.co.saiman.experiment.procedure.Instruction;
+import uk.co.saiman.experiment.procedure.Procedure;
+import uk.co.saiman.experiment.procedure.Template;
+import uk.co.saiman.experiment.product.Nothing;
+import uk.co.saiman.experiment.schedule.Products;
+import uk.co.saiman.experiment.schedule.Schedule;
+import uk.co.saiman.experiment.schedule.Scheduler;
+import uk.co.saiman.experiment.storage.StorageConfiguration;
+import uk.co.saiman.observable.HotObservable;
+import uk.co.saiman.observable.Observable;
+
+public class Experiment {
+  private Procedure procedure;
+  private NavigableSet<ExperimentPath<Absolute>> enabled = new TreeSet<>();
+
+  private final Scheduler scheduler;
+
+  private Map<ExperimentPath<Absolute>, Reference<Step>> steps = new HashMap<>();
+
+  private final HotObservable<ExperimentEvent> events = new HotObservable<>();
+
+  public Experiment(Procedure procedure, StorageConfiguration<?> storageConfiguration) {
+    this.procedure = requireNonNull(procedure);
+    this.scheduler = new Scheduler(storageConfiguration);
+  }
+
+  public Procedure getProcedure() {
+    return procedure;
+  }
+
+  public Schedule getSchedule() {
+    return scheduler.getSchedule().get();
+  }
+
+  public Products getProducts() {
+    return scheduler.getProducts().get();
+  }
+
+  public String getId() {
+    return getSchedule().getProcedure().id();
+  }
+
+  public void setId(String id) {
+    updateProcedure(p -> p.withId(id));
+  }
+
+  private synchronized void updateProcedure(Function<Procedure, Procedure> modifier) {
+    updateProcedure(modifier.apply(this.procedure));
+  }
+
+  private synchronized boolean updateProcedure(Procedure newProcedure) {
+    boolean changed = !procedure.equals(newProcedure);
+    if (changed) {
+      procedure = newProcedure;
+      scheduler.schedule(procedure);
+    }
+    return changed;
+  }
+
+  public StorageConfiguration<?> getStorageConfiguration() {
+    return scheduler.getStorageConfiguration();
+  }
+
+  public Observable<ExperimentEvent> events() {
+    return events;
+  }
+
+  public synchronized Step attach(Template<Nothing> step) {
+
+    // TODO
+
+    return null;
+  }
+
+  public synchronized void close() {
+
+  }
+
+  Instruction getInstruction(ExperimentPath<?> path) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  void updateInstruction(ExperimentPath<?> path, Instruction instruction) {
+    // TODO Auto-generated method stub
+
+  }
+
+  public Stream<Step> getSteps() {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

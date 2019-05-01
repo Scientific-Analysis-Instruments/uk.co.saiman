@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,34 +27,41 @@
  */
 package uk.co.saiman.observable;
 
-import static org.junit.Assert.assertNull;
+import static java.time.Duration.ofSeconds;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTimeout;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
 
 import java.lang.ref.WeakReference;
 
-import org.junit.Test;
-
-import mockit.FullVerificationsInOrder;
-import mockit.Injectable;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @SuppressWarnings("javadoc")
+@ExtendWith(MockitoExtension.class)
 public class ReferenceOwnedObserverTest {
-  @Injectable
+  @Mock
   Observation upstreamObservation;
 
-  @Injectable
+  @Mock
   Observer<OwnedMessage<Object, String>> downstreamObserver;
 
-  @Test(timeout = 5000)
+  @Test
   public void weakReferenceTest() {
-    WeakReference<?> reference = new WeakReference<>(new Object());
+    assertTimeout(ofSeconds(5), () -> {
+      WeakReference<?> reference = new WeakReference<>(new Object());
 
-    while (reference.get() != null) {
-      new Object();
-      System.gc();
-      System.runFinalization();
-    }
+      while (reference.get() != null) {
+        new Object();
+        System.gc();
+        System.runFinalization();
+      }
 
-    assertNull(reference.get());
+      assertNull(reference.get());
+    });
   }
 
   private Observer<OwnedMessage<Object, String>> wrapDownstreamObserver() {
@@ -92,8 +99,7 @@ public class ReferenceOwnedObserverTest {
     };
   }
 
-  @SuppressWarnings("unchecked")
-  @Test(timeout = 5000)
+  @Test
   public void holdWeakOwnedObserverThenMessageTest() {
     Object owner = new Object();
 
@@ -104,16 +110,13 @@ public class ReferenceOwnedObserverTest {
     weakReferenceTest();
     test.onNext("message");
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve(upstreamObservation);
-        downstreamObserver.onNext((OwnedMessage<Object, String>) any);
-      }
-    };
+    var inOrder = inOrder(upstreamObservation, downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(upstreamObservation);
+    inOrder.verify(downstreamObserver).onNext(any());
+    inOrder.verifyNoMoreInteractions();
   }
 
-  @SuppressWarnings("unchecked")
-  @Test(timeout = 5000)
+  @Test
   public void dropWeakOwnedObserverThenMessageTest() {
     Object owner = new Object();
 
@@ -126,12 +129,10 @@ public class ReferenceOwnedObserverTest {
     weakReferenceTest();
     test.onNext("message2");
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve(upstreamObservation);
-        downstreamObserver.onNext((OwnedMessage<Object, String>) any);
-        upstreamObservation.cancel();
-      }
-    };
+    var inOrder = inOrder(upstreamObservation, downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(upstreamObservation);
+    inOrder.verify(downstreamObserver).onNext(any());
+    inOrder.verify(upstreamObservation).cancel();
+    inOrder.verifyNoMoreInteractions();
   }
 }

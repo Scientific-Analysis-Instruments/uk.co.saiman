@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -29,8 +29,8 @@ package uk.co.saiman.msapex.camera;
 
 import static uk.co.saiman.fx.FxUtilities.wrap;
 import static uk.co.saiman.fx.FxmlLoadBuilder.buildWith;
-import static uk.co.saiman.observable.Observer.onObservation;
 import static uk.co.saiman.observable.Observer.forObservation;
+import static uk.co.saiman.observable.Observer.onObservation;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -51,8 +51,8 @@ import javafx.scene.paint.Color;
 import uk.co.saiman.camera.CameraConnection;
 import uk.co.saiman.camera.CameraDevice;
 import uk.co.saiman.camera.CameraImage;
-import uk.co.saiman.camera.CameraProperties;
 import uk.co.saiman.eclipse.localization.Localize;
+import uk.co.saiman.msapex.camera.i18n.CameraProperties;
 import uk.co.saiman.observable.Disposable;
 
 /**

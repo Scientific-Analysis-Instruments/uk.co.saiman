@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -33,21 +33,21 @@ import javax.inject.Inject;
 
 import org.eclipse.e4.core.contexts.IEclipseContext;
 
+import uk.co.saiman.data.function.processing.DataProcessor;
 import uk.co.saiman.eclipse.ui.ChildrenService;
 import uk.co.saiman.experiment.processing.Processing;
-import uk.co.saiman.experiment.processing.Processor;
+import uk.co.saiman.msapex.experiment.processing.ProcessorCell;
 
 public class ProcessingTree {
   public static final String ID = "uk.co.saiman.experiment.processing.tree";
 
   @Inject
   public void prepare(IEclipseContext context, Processing processing, ChildrenService children) {
-
     children
         .setItems(
-            ID,
-            Processor.class,
-            processing.processors().collect(toList()),
-            r -> context.set(Processing.class, new Processing(r)));
+            ProcessorCell.ID,
+            DataProcessor.class,
+            processing.steps().collect(toList()),
+            r -> context.modify(Processing.class, new Processing(r)));
   }
 }

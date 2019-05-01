@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -38,7 +38,7 @@ import uk.co.saiman.observable.Disposable;
 
 public class StateToolControl {
   private final Label label;
-  private SampleDevice<?> device;
+  private SampleDevice<?, ?> device;
   private Disposable requestedLocation;
   private Disposable actualLocation;
   private Disposable sampleState;
@@ -50,7 +50,7 @@ public class StateToolControl {
   }
 
   @Inject
-  public void setDevice(@Optional SampleDevice<?> device) {
+  public void setDevice(@Optional SampleDevice<?, ?> device) {
     if (this.device != null) {
       requestedLocation.cancel();
       actualLocation.cancel();
@@ -59,9 +59,9 @@ public class StateToolControl {
 
     this.device = device;
     if (device != null) {
-      requestedLocation = device.requestedLocation().observe(l -> updateLabel());
-      actualLocation = device.actualLocation().observe(l -> updateLabel());
-      sampleState = device.sampleState().observe(l -> updateLabel());
+      requestedLocation = device.requestedLocation().value().observe(l -> updateLabel());
+      actualLocation = device.actualLocation().value().observe(l -> updateLabel());
+      sampleState = device.sampleState().value().observe(l -> updateLabel());
     } else {
       requestedLocation = null;
       actualLocation = null;

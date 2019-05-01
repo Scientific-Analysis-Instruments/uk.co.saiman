@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -133,8 +133,6 @@ public abstract class Annotation<X extends Quantity<X>, Y extends Quantity<Y>> e
    * <p>
    * It is used to determine render order when parts of two annotations overlap in
    * a way which is allowed. Higher priority annotations are drawn on top.
-   * 
-   * @return
    */
   public IntegerProperty priorityProperty() {
     return priority;

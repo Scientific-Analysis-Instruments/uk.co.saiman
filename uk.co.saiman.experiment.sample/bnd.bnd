@@ -2,9 +2,6 @@ Bundle-Name: SAI :: Experiment :: Sample
 
 Export-Package: uk.co.saiman.experiment.sample
 
--includeresource:\
-	l10n
-
 -buildpath:\
 	uk.co.saiman.utilities;version=snapshot,\
 	uk.co.saiman.observable;version=snapshot,\
@@ -14,12 +11,13 @@ Export-Package: uk.co.saiman.experiment.sample
 	uk.co.saiman.reflection;version=snapshot,\
 	uk.co.saiman.reflection.token;version=snapshot,\
 \
-	uk.co.saiman.experiment;version=snapshot,\
+	uk.co.saiman.experiment.procedure;version=snapshot,\
 	uk.co.saiman.instrument;version=snapshot,\
 	uk.co.saiman.instrument.raster;version=snapshot,\
 	uk.co.saiman.instrument.sample;version=snapshot,\
 	uk.co.saiman.instrument.stage;version=snapshot,\
 	uk.co.saiman.utilities;version=snapshot,\
+	uk.co.saiman.state;version=snapshot,\
 	uk.co.saiman.data;version=snapshot,\
 \
 	javax.measure.unit-api

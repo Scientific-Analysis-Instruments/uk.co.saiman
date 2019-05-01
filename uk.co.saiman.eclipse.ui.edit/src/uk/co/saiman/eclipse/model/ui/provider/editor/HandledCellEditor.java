@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -89,14 +89,14 @@ public class HandledCellEditor extends CellEditor {
       IObservableValue<?> master,
       IWidgetValueProperty textProp) {
     createElementIdControl(parent, context, master, textProp);
+    createLabelControls(parent, context, master, textProp);
     createContributionControl(parent, context);
-    createVisibleWhenControl(parent, context);
+    createRenderingControls(parent, context);
     createCommandControl(parent, context, master, textProp);
-    createEditableControl(parent, context);
     createPopupMenuControl(parent);
     createChildrenControl(parent);
-    createMediaTypesControl(parent);
     createPersistedStateControl(parent);
+    createContextPropertiesControl(parent);
   }
 
   @SuppressWarnings("unchecked")
@@ -123,7 +123,7 @@ public class HandledCellEditor extends CellEditor {
             new UpdateValueStrategy().setConverter(new CommandToStringConverter(Messages)));
 
     Button b = new Button(parent, SWT.PUSH | SWT.FLAT);
-    b.setText(Messages.ModelTooling_Common_FindEllipsis);
+    b.setText(getString("_UI_FindEllipsis"));
     b.setImage(createImage(ResourceProvider.IMG_Obj16_zoom));
     b.setLayoutData(new GridData(GridData.FILL, GridData.CENTER, false, false));
     b.addSelectionListener(new SelectionAdapter() {

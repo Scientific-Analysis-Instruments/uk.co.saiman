@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -38,9 +38,6 @@ import org.eclipse.e4.ui.model.application.ui.MElementContainer;
 import org.eclipse.e4.ui.model.application.ui.MLocalizable;
 import org.eclipse.e4.ui.model.application.ui.MUIElement;
 import org.eclipse.e4.ui.model.application.ui.MUILabel;
-
-import org.eclipse.e4.ui.model.application.ui.menu.MHandledItem;
-import org.eclipse.e4.ui.model.application.ui.menu.MItem;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 
@@ -131,29 +128,33 @@ public class Switch<T1> extends org.eclipse.emf.ecore.util.Switch<T1> {
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
-      case Package.CELL_CONTRIBUTION: {
-        CellContribution cellContribution = (CellContribution)theEObject;
-        T1 result = caseCellContribution(cellContribution);
-        if (result == null) result = caseContext(cellContribution);
-        if (result == null) result = caseContribution(cellContribution);
-        if (result == null) result = caseApplicationElement(cellContribution);
-        if (result == null) result = defaultCase(theEObject);
-        return result;
-      }
       case Package.HANDLED_CELL: {
         HandledCell handledCell = (HandledCell)theEObject;
         T1 result = caseHandledCell(handledCell);
         if (result == null) result = caseCell(handledCell);
-        if (result == null) result = caseHandledItem(handledCell);
+        if (result == null) result = caseUILabel(handledCell);
         if (result == null) result = caseContext(handledCell);
         if (result == null) result = caseContribution(handledCell);
         if (result == null) result = caseElementContainer(handledCell);
         if (result == null) result = caseHandlerContainer(handledCell);
-        if (result == null) result = caseItem(handledCell);
-        if (result == null) result = caseUILabel(handledCell);
         if (result == null) result = caseUIElement(handledCell);
         if (result == null) result = caseLocalizable(handledCell);
         if (result == null) result = caseApplicationElement(handledCell);
+        if (result == null) result = defaultCase(theEObject);
+        return result;
+      }
+      case Package.EDITABLE_CELL: {
+        EditableCell editableCell = (EditableCell)theEObject;
+        T1 result = caseEditableCell(editableCell);
+        if (result == null) result = caseCell(editableCell);
+        if (result == null) result = caseUILabel(editableCell);
+        if (result == null) result = caseContext(editableCell);
+        if (result == null) result = caseContribution(editableCell);
+        if (result == null) result = caseElementContainer(editableCell);
+        if (result == null) result = caseHandlerContainer(editableCell);
+        if (result == null) result = caseUIElement(editableCell);
+        if (result == null) result = caseLocalizable(editableCell);
+        if (result == null) result = caseApplicationElement(editableCell);
         if (result == null) result = defaultCase(theEObject);
         return result;
       }
@@ -192,21 +193,6 @@ public class Switch<T1> extends org.eclipse.emf.ecore.util.Switch<T1> {
   }
 
   /**
-   * Returns the result of interpreting the object as an instance of '<em>Cell Contribution</em>'.
-   * <!-- begin-user-doc -->
-   * This implementation returns null;
-   * returning a non-null result will terminate the switch.
-   * <!-- end-user-doc -->
-   * @param object the target of the switch.
-   * @return the result of interpreting the object as an instance of '<em>Cell Contribution</em>'.
-   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-   * @generated
-   */
-  public T1 caseCellContribution(CellContribution object) {
-    return null;
-  }
-
-  /**
    * Returns the result of interpreting the object as an instance of '<em>Handled Cell</em>'.
    * <!-- begin-user-doc -->
    * This implementation returns null;
@@ -218,6 +204,21 @@ public class Switch<T1> extends org.eclipse.emf.ecore.util.Switch<T1> {
    * @generated
    */
   public T1 caseHandledCell(HandledCell object) {
+    return null;
+  }
+
+  /**
+   * Returns the result of interpreting the object as an instance of '<em>Editable Cell</em>'.
+   * <!-- begin-user-doc -->
+   * This implementation returns null;
+   * returning a non-null result will terminate the switch.
+   * <!-- end-user-doc -->
+   * @param object the target of the switch.
+   * @return the result of interpreting the object as an instance of '<em>Editable Cell</em>'.
+   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+   * @generated
+   */
+  public T1 caseEditableCell(EditableCell object) {
     return null;
   }
 
@@ -346,38 +347,6 @@ public class Switch<T1> extends org.eclipse.emf.ecore.util.Switch<T1> {
    * @generated
    */
   public T1 caseHandlerContainer(MHandlerContainer object) {
-    return null;
-  }
-
-  /**
-   * Returns the result of interpreting the object as an instance of '<em>Item</em>'.
-   * <!-- begin-user-doc -->
-   * This implementation returns null;
-   * returning a non-null result will terminate the switch.
-   * <!-- end-user-doc -->
-   * @param object the target of the switch.
-   * @return the result of interpreting the object as an instance of '<em>Item</em>'.
-   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-   * @since 1.0
-   * @generated
-   */
-  public T1 caseItem(MItem object) {
-    return null;
-  }
-
-  /**
-   * Returns the result of interpreting the object as an instance of '<em>Handled Item</em>'.
-   * <!-- begin-user-doc -->
-   * This implementation returns null;
-   * returning a non-null result will terminate the switch.
-   * <!-- end-user-doc -->
-   * @param object the target of the switch.
-   * @return the result of interpreting the object as an instance of '<em>Handled Item</em>'.
-   * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
-   * @since 1.0
-   * @generated
-   */
-  public T1 caseHandledItem(MHandledItem object) {
     return null;
   }
 

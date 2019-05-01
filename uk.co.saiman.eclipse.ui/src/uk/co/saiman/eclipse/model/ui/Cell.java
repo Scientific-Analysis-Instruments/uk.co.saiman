@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -37,9 +37,6 @@ import org.eclipse.e4.ui.model.application.ui.MElementContainer;
 import org.eclipse.e4.ui.model.application.ui.MUILabel;
 
 import org.eclipse.e4.ui.model.application.ui.menu.MPopupMenu;
-import org.eclipse.emf.common.util.EList;
-import uk.co.saiman.data.format.MediaType;
-import uk.co.saiman.eclipse.ui.TransferFormat;
 
 /**
  * <!-- begin-user-doc -->
@@ -50,13 +47,8 @@ import uk.co.saiman.eclipse.ui.TransferFormat;
  * The following features are supported:
  * </p>
  * <ul>
- *   <li>{@link uk.co.saiman.eclipse.model.ui.Cell#getMediaTypes <em>Media Types</em>}</li>
- *   <li>{@link uk.co.saiman.eclipse.model.ui.Cell#isEditable <em>Editable</em>}</li>
- *   <li>{@link uk.co.saiman.eclipse.model.ui.Cell#getContributions <em>Contributions</em>}</li>
  *   <li>{@link uk.co.saiman.eclipse.model.ui.Cell#getPopupMenu <em>Popup Menu</em>}</li>
- *   <li>{@link uk.co.saiman.eclipse.model.ui.Cell#getTransferFormats <em>Transfer Formats</em>}</li>
- *   <li>{@link uk.co.saiman.eclipse.model.ui.Cell#getContextValue <em>Context Value</em>}</li>
- *   <li>{@link uk.co.saiman.eclipse.model.ui.Cell#isOptional <em>Optional</em>}</li>
+ *   <li>{@link uk.co.saiman.eclipse.model.ui.Cell#isExpanded <em>Expanded</em>}</li>
  * </ul>
  *
  * @see uk.co.saiman.eclipse.model.ui.Package#getCell()
@@ -64,58 +56,6 @@ import uk.co.saiman.eclipse.ui.TransferFormat;
  * @generated
  */
 public interface Cell extends MUILabel, MContext, MContribution, MElementContainer<Cell>, MHandlerContainer {
-  /**
-   * Returns the value of the '<em><b>Media Types</b></em>' attribute list.
-   * The list contents are of type {@link uk.co.saiman.data.format.MediaType}.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @return the value of the '<em>Media Types</em>' attribute list.
-   * @see uk.co.saiman.eclipse.model.ui.Package#getCell_MediaTypes()
-   * @model dataType="uk.co.saiman.eclipse.model.ui.MediaType"
-   * @generated
-   */
-  EList<MediaType> getMediaTypes();
-
-  /**
-   * Returns the value of the '<em><b>Editable</b></em>' attribute.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @return the value of the '<em>Editable</em>' attribute.
-   * @see #setEditable(boolean)
-   * @see uk.co.saiman.eclipse.model.ui.Package#getCell_Editable()
-   * @model
-   * @generated
-   */
-  boolean isEditable();
-
-  /**
-   * Sets the value of the '{@link uk.co.saiman.eclipse.model.ui.Cell#isEditable <em>Editable</em>}' attribute.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @param value the new value of the '<em>Editable</em>' attribute.
-   * @see #isEditable()
-   * @generated
-   */
-  void setEditable(boolean value);
-
-  /**
-   * Returns the value of the '<em><b>Contributions</b></em>' containment reference list.
-   * The list contents are of type {@link uk.co.saiman.eclipse.model.ui.CellContribution}.
-   * It is bidirectional and its opposite is '{@link uk.co.saiman.eclipse.model.ui.CellContribution#getParent <em>Parent</em>}'.
-   * <!-- begin-user-doc -->
-   * <p>
-   * If the meaning of the '<em>Contributions</em>' reference list isn't clear,
-   * there really should be more of a description here...
-   * </p>
-   * <!-- end-user-doc -->
-   * @return the value of the '<em>Contributions</em>' containment reference list.
-   * @see uk.co.saiman.eclipse.model.ui.Package#getCell_Contributions()
-   * @see uk.co.saiman.eclipse.model.ui.CellContribution#getParent
-   * @model opposite="parent" containment="true"
-   * @generated
-   */
-  EList<CellContribution> getContributions();
-
   /**
    * Returns the value of the '<em><b>Popup Menu</b></em>' containment reference.
    * <!-- begin-user-doc -->
@@ -143,71 +83,33 @@ public interface Cell extends MUILabel, MContext, MContribution, MElementContain
   void setPopupMenu(MPopupMenu value);
 
   /**
-   * Returns the value of the '<em><b>Transfer Formats</b></em>' attribute list.
-   * The list contents are of type {@link uk.co.saiman.eclipse.ui.TransferFormat}<code>&lt;?&gt;</code>.
+   * Returns the value of the '<em><b>Expanded</b></em>' attribute.
+   * The default value is <code>"false"</code>.
    * <!-- begin-user-doc -->
    * <p>
-   * If the meaning of the '<em>Transfer Formats</em>' attribute list isn't clear,
+   * If the meaning of the '<em>Expanded</em>' attribute isn't clear,
    * there really should be more of a description here...
    * </p>
    * <!-- end-user-doc -->
-   * @return the value of the '<em>Transfer Formats</em>' attribute list.
-   * @see uk.co.saiman.eclipse.model.ui.Package#getCell_TransferFormats()
-   * @model dataType="uk.co.saiman.eclipse.model.ui.TransferFormat&lt;?&gt;" transient="true" derived="true"
+   * <!-- begin-model-doc -->
+   * True if the tree node is expanded in the UI presentation
+   * <!-- end-model-doc -->
+   * @return the value of the '<em>Expanded</em>' attribute.
+   * @see #setExpanded(boolean)
+   * @see uk.co.saiman.eclipse.model.ui.Package#getCell_Expanded()
+   * @model default="false"
    * @generated
    */
-  EList<TransferFormat<?>> getTransferFormats();
+  boolean isExpanded();
 
   /**
-   * Returns the value of the '<em><b>Context Value</b></em>' attribute.
-   * <!-- begin-user-doc -->
-   * <p>
-   * If the meaning of the '<em>Context Value</em>' attribute isn't clear,
-   * there really should be more of a description here...
-   * </p>
-   * <!-- end-user-doc -->
-   * @return the value of the '<em>Context Value</em>' attribute.
-   * @see #setContextValue(String)
-   * @see uk.co.saiman.eclipse.model.ui.Package#getCell_ContextValue()
-   * @model
-   * @generated
-   */
-  String getContextValue();
-
-  /**
-   * Sets the value of the '{@link uk.co.saiman.eclipse.model.ui.Cell#getContextValue <em>Context Value</em>}' attribute.
+   * Sets the value of the '{@link uk.co.saiman.eclipse.model.ui.Cell#isExpanded <em>Expanded</em>}' attribute.
    * <!-- begin-user-doc -->
    * <!-- end-user-doc -->
-   * @param value the new value of the '<em>Context Value</em>' attribute.
-   * @see #getContextValue()
+   * @param value the new value of the '<em>Expanded</em>' attribute.
+   * @see #isExpanded()
    * @generated
    */
-  void setContextValue(String value);
-
-  /**
-   * Returns the value of the '<em><b>Optional</b></em>' attribute.
-   * <!-- begin-user-doc -->
-   * <p>
-   * If the meaning of the '<em>Optional</em>' attribute isn't clear,
-   * there really should be more of a description here...
-   * </p>
-   * <!-- end-user-doc -->
-   * @return the value of the '<em>Optional</em>' attribute.
-   * @see #setOptional(boolean)
-   * @see uk.co.saiman.eclipse.model.ui.Package#getCell_Optional()
-   * @model
-   * @generated
-   */
-  boolean isOptional();
-
-  /**
-   * Sets the value of the '{@link uk.co.saiman.eclipse.model.ui.Cell#isOptional <em>Optional</em>}' attribute.
-   * <!-- begin-user-doc -->
-   * <!-- end-user-doc -->
-   * @param value the new value of the '<em>Optional</em>' attribute.
-   * @see #isOptional()
-   * @generated
-   */
-  void setOptional(boolean value);
+  void setExpanded(boolean value);
 
 } // Cell

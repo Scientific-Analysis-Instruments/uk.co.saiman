@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -34,20 +34,20 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
-import uk.co.saiman.acquisition.AcquisitionDevice;
+import uk.co.saiman.instrument.acquisition.AcquisitionDevice;
 
 public class AcquisitionDeviceSelection {
-  private List<AcquisitionDevice> devices;
+  private List<AcquisitionDevice<?>> devices;
 
   public AcquisitionDeviceSelection() {
     this.devices = emptyList();
   }
 
-  public AcquisitionDeviceSelection(Collection<? extends AcquisitionDevice> devices) {
+  public AcquisitionDeviceSelection(Collection<? extends AcquisitionDevice<?>> devices) {
     this.devices = new ArrayList<>(devices);
   }
 
-  public Stream<AcquisitionDevice> getSelectedDevices() {
+  public Stream<AcquisitionDevice<?>> getSelectedDevices() {
     return devices.stream();
   }
 }

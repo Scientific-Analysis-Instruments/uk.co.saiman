@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,38 +27,35 @@
  */
 package uk.co.saiman.eclipse.ui.fx.impl;
 
+import static org.eclipse.e4.ui.workbench.IPresentationEngine.NO_AUTO_COLLAPSE;
+
+import java.util.ArrayList;
 import java.util.Collection;
 
-import org.eclipse.e4.core.contexts.ContextInjectionFactory;
 import org.eclipse.e4.core.services.contributions.IContributionFactory;
 import org.eclipse.e4.core.services.events.IEventBroker;
 import org.eclipse.e4.ui.model.application.ui.MUIElement;
 import org.eclipse.e4.ui.model.application.ui.menu.MPopupMenu;
 import org.eclipse.e4.ui.workbench.UIEvents;
 import org.eclipse.fx.ui.workbench.renderers.base.BaseItemContainerRenderer;
-import org.eclipse.fx.ui.workbench.renderers.base.Util;
 import org.eclipse.fx.ui.workbench.renderers.base.widget.WPopupMenu;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
 
 import uk.co.saiman.eclipse.model.ui.Cell;
-import uk.co.saiman.eclipse.model.ui.CellContribution;
 import uk.co.saiman.eclipse.ui.SaiUiEvents;
 import uk.co.saiman.eclipse.ui.fx.widget.WCell;
 
 /**
  * Base renderer of {@link Cell}
  * 
- * @param <N>
- *          the native widget type
+ * @param <N> the native widget type
  */
 public abstract class BaseCellRenderer<N> extends BaseItemContainerRenderer<Cell, Cell, WCell<N>> {
   /**
    * Eventbroker to use
    */
   protected IEventBroker eventBroker;
-
-  private CellContributionHandler cellContributionHandler;
 
   @Override
   public void do_init(IEventBroker broker) {
@@ -73,7 +70,11 @@ public abstract class BaseCellRenderer<N> extends BaseItemContainerRenderer<Cell
     registerEventListener(broker, UIEvents.Item.TOPIC_SELECTED);
     registerEventListener(broker, UIEvents.Item.TOPIC_ENABLED);
 
-    registerEventListener(broker, UIEvents.Item.TOPIC_ENABLED);
+    registerEventListener(broker, SaiUiEvents.EditableCell.TOPIC_EDITING);
+
+    registerEventListener(broker, SaiUiEvents.Cell.TOPIC_NULLABLE);
+    registerEventListener(broker, SaiUiEvents.Cell.TOPIC_EXPANDED);
+    registerEventListener(broker, SaiUiEvents.Cell.TOPIC_CONTEXT_VALUE);
 
     broker.subscribe(SaiUiEvents.Cell.TOPIC_POPUP_MENU, new EventHandler() {
       @Override
@@ -85,25 +86,6 @@ public abstract class BaseCellRenderer<N> extends BaseItemContainerRenderer<Cell
           handleSetPopupMenu(
               (Cell) parent,
               (MPopupMenu) event.getProperty(UIEvents.EventTags.NEW_VALUE));
-        }
-      }
-    });
-
-    broker.subscribe(SaiUiEvents.Cell.TOPIC_CONTRIBUTIONS, new EventHandler() {
-      @Override
-      public void handleEvent(Event event) {
-        Object changedObj = event.getProperty(UIEvents.EventTags.ELEMENT);
-        MUIElement parent = (MUIElement) changedObj;
-
-        if (parent.getRenderer() == this) {
-          if (UIEvents.isADD(event))
-            handleContributionAddition(
-                (Cell) parent,
-                Util.<CellContribution>asCollection(event, UIEvents.EventTags.NEW_VALUE));
-          else if (UIEvents.isREMOVE(event))
-            handleContributionRemove(
-                (Cell) parent,
-                Util.<CellContribution>asCollection(event, UIEvents.EventTags.OLD_VALUE));
         }
       }
     });
@@ -120,25 +102,23 @@ public abstract class BaseCellRenderer<N> extends BaseItemContainerRenderer<Cell
       return;
     }
 
+    element.getTags().add(NO_AUTO_COLLAPSE);
+
     Class<?> cl = cell.getWidget().getClass();
     do {
       element.getContext().set(cl.getName(), cell.getWidget());
       cl = cl.getSuperclass();
-    } while (!cl.equals(Object.class)); // $NON-NLS-1$
+    } while (!cl.equals(Object.class));
 
     IContributionFactory contributionFactory = element.getContext().get(IContributionFactory.class);
     Object newCell = contributionFactory.create(element.getContributionURI(), element.getContext());
     element.setObject(newCell);
 
-    cellContributionHandler = ContextInjectionFactory
-        .make(CellContributionHandler.class, element.getContext());
-    handleContributionAddition(element, element.getContributions());
-
     if (element.getPopupMenu() != null) {
       handleSetPopupMenu(element, element.getPopupMenu());
     }
 
-    for (Cell child : element.getChildren()) {
+    for (Cell child : new ArrayList<>(element.getChildren())) {
       if (child.isToBeRendered()) {
         Object widget = child.getWidget();
         if (widget == null) {
@@ -185,14 +165,6 @@ public abstract class BaseCellRenderer<N> extends BaseItemContainerRenderer<Cell
     ((WCell<?>) parent.getWidget()).setPopupMenu((WPopupMenu<?>) property.getWidget());
   }
 
-  public void handleContributionRemove(Cell parent, Collection<CellContribution> contributions) {
-    cellContributionHandler.handleContributionRemove(parent, contributions);
-  }
-
-  public void handleContributionAddition(Cell parent, Collection<CellContribution> contributions) {
-    cellContributionHandler.handleContributionAddition(parent, contributions);
-  }
-
   @Override
   public void do_childRendered(Cell parentElement, MUIElement element) {
     if (inContentProcessing(parentElement) || !isChildRenderedAndVisible(element)) {
@@ -215,16 +187,18 @@ public abstract class BaseCellRenderer<N> extends BaseItemContainerRenderer<Cell
   }
 
   @Override
-  public void do_hideChild(Cell container, MUIElement cell) {
-    WCell<N> tree = getWidget(container);
+  public void do_hideChild(Cell container, MUIElement child) {
+    WCell<N> cell = getWidget(container);
 
-    if (tree == null) {
+    if (cell == null) {
       return;
     }
 
-    WCell<?> widget = (WCell<?>) cell.getWidget();
-    if (widget != null) {
-      tree.removeCell(widget);
+    if (child instanceof Cell) {
+      WCell<?> widget = (WCell<?>) child.getWidget();
+      if (widget != null) {
+        cell.removeCell(widget);
+      }
     }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -28,53 +28,59 @@
 package uk.co.saiman.msapex.experiment.spectrum;
 
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Stream.concat;
 import static uk.co.saiman.fx.FxUtilities.wrap;
 
 import java.util.List;
-import java.util.stream.Stream;
 
+import javax.inject.Inject;
+
+import org.eclipse.e4.core.contexts.IEclipseContext;
+import org.eclipse.e4.core.di.annotations.CanExecute;
 import org.eclipse.e4.core.di.annotations.Execute;
+import org.eclipse.e4.core.di.annotations.Optional;
 import org.eclipse.fx.core.di.Service;
 
 import javafx.scene.control.ChoiceDialog;
+import uk.co.saiman.eclipse.adapter.AdaptClass;
 import uk.co.saiman.eclipse.localization.Localize;
-import uk.co.saiman.experiment.ExperimentNode;
-import uk.co.saiman.experiment.ExperimentProperties;
+import uk.co.saiman.experiment.Step;
 import uk.co.saiman.experiment.processing.Processing;
-import uk.co.saiman.experiment.processing.Processor;
-import uk.co.saiman.experiment.spectrum.SpectrumResultConfiguration;
+import uk.co.saiman.experiment.processing.ProcessingService;
+import uk.co.saiman.experiment.processing.ProcessingStrategy;
+import uk.co.saiman.msapex.experiment.i18n.ExperimentProperties;
 import uk.co.saiman.properties.Localized;
 
 public class AddProcessorHandler {
+  @Service
+  @Inject
+  private ProcessingService processingService;
+
+  @Inject
+  private IEclipseContext context;
+
+  @CanExecute
+  boolean canExecute(@Optional @AdaptClass(Step.class) Processing configuration) {
+    return configuration != null;
+  }
+
   @Execute
   void execute(
-      ExperimentNode<? extends SpectrumResultConfiguration, ?> node,
-      @Service List<Processor> processors,
+      @AdaptClass(Step.class) Processing configuration,
       @Localize ExperimentProperties text) {
-
-    requestProcessorType(
-        processors,
-        text.addSpectrumProcessor(),
-        text.addSpectrumProcessorDescription())
-            .ifPresent(processor -> addProcessor(node.getState(), processor));
+    requestProcessorType(text.addSpectrumProcessor(), text.addSpectrumProcessorDescription())
+        .ifPresent(
+            processor -> context
+                .set(Processing.class, configuration.withStep(processor.createProcessor())));
   }
 
-  private void addProcessor(SpectrumResultConfiguration state, Processor processor) {
-    state
-        .setProcessing(
-            new Processing(
-                concat(state.getProcessing().processors(), Stream.of(processor))
-                    .collect(toList())));
-  }
-
-  static java.util.Optional<Processor> requestProcessorType(
-      @Service List<Processor> processors,
+  private java.util.Optional<ProcessingStrategy<?>> requestProcessorType(
       Localized<String> title,
       Localized<String> header) {
-    ChoiceDialog<Processor> nameDialog = processors.isEmpty()
+    List<ProcessingStrategy<?>> strategies = processingService.strategies().collect(toList());
+
+    ChoiceDialog<ProcessingStrategy<?>> nameDialog = strategies.isEmpty()
         ? new ChoiceDialog<>()
-        : new ChoiceDialog<>(processors.get(0), processors);
+        : new ChoiceDialog<>(strategies.get(0), strategies);
     nameDialog.titleProperty().bind(wrap(title));
     nameDialog.headerTextProperty().bind(wrap(header));
 

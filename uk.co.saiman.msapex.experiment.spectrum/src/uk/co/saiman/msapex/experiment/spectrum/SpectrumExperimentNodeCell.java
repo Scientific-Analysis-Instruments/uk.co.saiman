@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,24 +27,38 @@
  */
 package uk.co.saiman.msapex.experiment.spectrum;
 
-import org.eclipse.e4.ui.di.AboutToShow;
+import static uk.co.saiman.msapex.experiment.ExperimentStepCell.SUPPLEMENTAL_TEXT;
 
-import uk.co.saiman.eclipse.adapter.AdaptClass;
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+import javax.inject.Named;
+
+import org.eclipse.e4.ui.model.application.ui.MUIElement;
+
+import javafx.scene.control.Label;
+import uk.co.saiman.eclipse.localization.Localize;
 import uk.co.saiman.eclipse.model.ui.Cell;
-import uk.co.saiman.eclipse.ui.ChildrenService;
-import uk.co.saiman.experiment.ExperimentNode;
-import uk.co.saiman.experiment.spectrum.SpectrumConfiguration;
+import uk.co.saiman.experiment.Step;
+import uk.co.saiman.experiment.procedure.Instruction;
+import uk.co.saiman.msapex.experiment.spectrum.i18n.SpectrumProperties;
 
 public class SpectrumExperimentNodeCell {
-  public static final String ID = "uk.co.saiman.experiment.spectrum.cell";
+  @Inject
+  @Localize
+  SpectrumProperties properties;
 
-  @AboutToShow
+  @PostConstruct
   public void prepare(
       Cell cell,
-      ExperimentNode<?, ?> data,
-      @AdaptClass(ExperimentNode.class) SpectrumConfiguration state,
-      ChildrenService children) {
-    cell.setLabel(data.getType().getName());
-    // TODO cell.setSupplemental(state.getSpectrumName());
+      @Named(SUPPLEMENTAL_TEXT) Label supplemental,
+      Step data,
+      Instruction instruction) {
+    cell = (Cell) (MUIElement) cell.getParent();
+
+    cell.setLabel(properties.spectrumExperimentName().get());
+    cell
+        .setIconURI(
+            "platform:/plugin/uk.co.saiman.icons.fugue/uk/co/saiman/icons/fugue/size16/spectrum.png");
+    supplemental.setText(instruction.id());
   }
 }

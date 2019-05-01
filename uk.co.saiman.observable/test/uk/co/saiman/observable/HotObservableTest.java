@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,17 +27,22 @@
  */
 package uk.co.saiman.observable;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.inOrder;
 
-import org.junit.Test;
-
-import mockit.FullVerificationsInOrder;
-import mockit.Injectable;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @SuppressWarnings("javadoc")
+@ExtendWith(MockitoExtension.class)
 public class HotObservableTest {
-  @Injectable
+  @Mock
   Observer<String> downstreamObserver;
 
   @Test
@@ -45,11 +50,9 @@ public class HotObservableTest {
     HotObservable<String> observable = new HotObservable<>();
     observable.observe(downstreamObserver);
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-      }
-    };
+    var inOrder = inOrder(downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -59,11 +62,11 @@ public class HotObservableTest {
     observable.assertLive();
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void startWhenLiveTest() {
     HotObservable<String> observable = new HotObservable<>();
     observable.observe(downstreamObserver);
-    observable.start();
+    assertThrows(IllegalStateException.class, () -> observable.start());
   }
 
   @Test
@@ -93,38 +96,38 @@ public class HotObservableTest {
   public void isDeadAfterCompleteTest() {
     HotObservable<String> observable = new HotObservable<>();
     observable.complete();
-    observable.assertDead();
+    assertFalse(observable.isLive());
   }
 
   @Test
   public void isDeadAfterFailTest() {
     HotObservable<String> observable = new HotObservable<>();
     observable.fail(new Throwable());
-    observable.assertDead();
+    assertFalse(observable.isLive());
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void messageWhenDeadTest() {
     HotObservable<String> observable = new HotObservable<>();
     observable.observe(downstreamObserver);
     observable.complete();
-    observable.next("fail");
+    assertThrows(IllegalStateException.class, () -> observable.next("fail"));
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void completeWhenDeadTest() {
     HotObservable<String> observable = new HotObservable<>();
     observable.observe(downstreamObserver);
     observable.complete();
-    observable.complete();
+    assertThrows(IllegalStateException.class, () -> observable.complete());
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void failWhenDeadTest() {
     HotObservable<String> observable = new HotObservable<>();
     observable.observe(downstreamObserver);
     observable.complete();
-    observable.fail(new Exception());
+    assertThrows(IllegalStateException.class, () -> observable.fail(new Exception()));
   }
 
   @Test
@@ -133,12 +136,10 @@ public class HotObservableTest {
     observable.observe(downstreamObserver);
     observable.next("message");
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        downstreamObserver.onNext("message");
-      }
-    };
+    var inOrder = inOrder(downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(downstreamObserver).onNext("message");
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -147,12 +148,10 @@ public class HotObservableTest {
     observable.observe(downstreamObserver);
     observable.complete();
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        downstreamObserver.onComplete();
-      }
-    };
+    var inOrder = inOrder(downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(downstreamObserver).onComplete();
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -163,12 +162,10 @@ public class HotObservableTest {
     observable.observe(downstreamObserver);
     observable.fail(t);
 
-    new FullVerificationsInOrder() {
-      {
-        downstreamObserver.onObserve((Observation) any);
-        downstreamObserver.onFail(t);
-      }
-    };
+    var inOrder = inOrder(downstreamObserver);
+    inOrder.verify(downstreamObserver).onObserve(any());
+    inOrder.verify(downstreamObserver).onFail(t);
+    inOrder.verifyNoMoreInteractions();
   }
 
   @Test
@@ -199,17 +196,17 @@ public class HotObservableTest {
     assertThat(observable.hasObservers(), equalTo(true));
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void failWithNullThrowableTest() {
     HotObservable<String> observable = new HotObservable<>();
     observable.observe();
-    observable.fail(null);
+    assertThrows(NullPointerException.class, () -> observable.fail(null));
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void failWithNullMessageTest() {
     HotObservable<String> observable = new HotObservable<>();
     observable.observe();
-    observable.next(null);
+    assertThrows(NullPointerException.class, () -> observable.next(null));
   }
 }

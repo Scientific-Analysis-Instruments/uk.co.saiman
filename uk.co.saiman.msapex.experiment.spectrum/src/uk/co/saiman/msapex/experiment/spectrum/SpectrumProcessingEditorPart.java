@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
+ * Copyright (C) 2019 Scientific Analysis Instruments Limited <contact@saiman.co.uk>
  *          ______         ___      ___________
  *       ,'========\     ,'===\    /========== \
  *      /== \___/== \  ,'==.== \   \__/== \___\/
@@ -27,11 +27,13 @@
  */
 package uk.co.saiman.msapex.experiment.spectrum;
 
+import static uk.co.saiman.experiment.processing.ProcessingDeclaration.PROCESSING_VARIABLE;
 import static uk.co.saiman.fx.FxmlLoadBuilder.buildWith;
 
 import javax.inject.Inject;
 
 import org.eclipse.e4.core.contexts.IEclipseContext;
+import org.eclipse.e4.core.di.extensions.Service;
 import org.eclipse.fx.core.di.LocalInstance;
 
 import javafx.fxml.FXML;
@@ -39,13 +41,12 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Control;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
-import uk.co.saiman.data.spectrum.Spectrum;
 import uk.co.saiman.eclipse.localization.Localize;
 import uk.co.saiman.eclipse.ui.fx.TreeService;
-import uk.co.saiman.experiment.ExperimentNode;
 import uk.co.saiman.experiment.processing.Processing;
-import uk.co.saiman.experiment.spectrum.SpectrumProperties;
-import uk.co.saiman.experiment.spectrum.SpectrumResultConfiguration;
+import uk.co.saiman.experiment.processing.ProcessingService;
+import uk.co.saiman.experiment.variables.Variables;
+import uk.co.saiman.msapex.experiment.spectrum.i18n.SpectrumProperties;
 
 public class SpectrumProcessingEditorPart {
   @Inject
@@ -60,14 +61,21 @@ public class SpectrumProcessingEditorPart {
   private IEclipseContext context;
 
   @Inject
+  @Service
+  private ProcessingService processingService;
+
+  @Inject
   SpectrumProcessingEditorPart(
       BorderPane container,
       TreeService treeService,
       @LocalInstance FXMLLoader loader,
-      ExperimentNode<? extends SpectrumResultConfiguration, Spectrum> result) {
+      Variables variables) {
     container.setCenter(buildWith(loader).controller(this).loadRoot());
 
-    context.set(Processing.class, result.getState().getProcessing());
+    variables
+        .get(PROCESSING_VARIABLE)
+        .map(processingService::loadDeclaration)
+        .ifPresent(p -> context.set(Processing.class, p));
 
     processingTree = treeService.createTree(ProcessingTree.ID, processingTreeScrollPane);
     processingTreeScrollPane.setContent(processingTree);
