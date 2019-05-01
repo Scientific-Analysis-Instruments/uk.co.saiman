@@ -27,58 +27,94 @@
  */
 package uk.co.saiman.experiment.procedure;
 
+import static java.lang.String.format;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
-import uk.co.saiman.experiment.product.Product;
-import uk.co.saiman.experiment.product.Production;
-import uk.co.saiman.experiment.variables.VariableDeclaration;
+import uk.co.saiman.experiment.path.ExperimentPath;
+import uk.co.saiman.experiment.production.ProductPath;
+import uk.co.saiman.experiment.production.Result;
+import uk.co.saiman.experiment.production.Results;
+import uk.co.saiman.experiment.storage.StorageConfiguration;
+import uk.co.saiman.observable.Observable;
 
-/**
- * An implementation of this interface represents a type of experiment node
- * which can appear in an experiment, for example "Spectrum", "Chemical Map",
- * "Stage Position", etc. Only one instance of such an implementation typically
- * needs to be registered with any given workspace.
- * 
- * <p>
- * The experiment type instance contains methods for managing the state and
- * processing of nodes of its type.
- * 
- * @author Elias N Vasylenko
- *
- * @param <T> the type of the {@link #directRequirement() direct requirement}
- */
-public interface Conductor<T extends Product> {
-  /**
-   * It is required that productions be returned in the order in which they are
-   * fulfilled, as this ordering is used to validate that experiment step
-   * interdependencies are satisfiable.
-   * 
-   * @return the productions made by this conductor
-   */
-  Stream<Production<?>> products();
+public class Conductor implements Results {
+  private final StorageConfiguration<?> storageConfiguration;
 
-  Requirement<T> directRequirement();
+  private final Map<ExperimentPath<?>, ExecutorProgress<?>> progress;
+  private Procedure procedure;
 
-  Stream<Requirements> indirectRequirements();
-
-  /**
-   * @return the set of required variables for experiments conducted by this
-   *         conductor
-   */
-  Stream<VariableDeclaration> variables();
-
-  /*
-   * Execution is cheap and resources are unlimited, so we may proceed
-   * automatically when necessary
-   */
-  default boolean isAutomatic() {
-    return false;
+  public Conductor(StorageConfiguration<?> storageConfiguration) {
+    this.storageConfiguration = storageConfiguration;
+    this.progress = new HashMap<>();
   }
 
-  /**
-   * Process this experiment type for a given node.
-   * 
-   * @param context the processing context
-   */
-  void conduct(ConductionContext<T> context);
+  public StorageConfiguration<?> storageConfiguration() {
+    return storageConfiguration;
+  }
+
+  public void conduct(Procedure procedure) {
+    this.procedure = procedure;
+
+    var progressIterator = progress.entrySet().iterator();
+    while (progressIterator.hasNext()) {
+      var progress = progressIterator.next();
+
+      procedure
+          .instruction(progress.getKey())
+          .ifPresentOrElse(progress.getValue()::updateInstruction, () -> {
+            progress.getValue().interrupt();
+            progressIterator.remove();
+          });
+    }
+    procedure
+        .instructions()
+        .filter(instruction -> progress.containsKey(instruction.path()))
+        .forEach(
+            instruction -> progress
+                .put(instruction.path(), new ExecutorProgress<>(this, instruction)));
+  }
+
+  public Optional<Procedure> procedure() {
+    return Optional.of(procedure);
+  }
+
+  public synchronized void interrupt() {
+    // TODO cancel anything ongoing...
+  }
+
+  public synchronized void clear() {
+    interrupt();
+
+    try {
+      storageConfiguration.locateStorage(ExperimentPath.defineAbsolute()).deallocate();
+    } catch (IOException e) {
+      throw new ConductorException(format("Unable to clear conducted procedure %s", procedure), e);
+    }
+
+    procedure = null;
+
+  }
+
+  @Override
+  public Stream<Result<?>> results() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public <T extends Result<?>> T resolveResult(ProductPath<?, T> path) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public <T extends Result<?>> Observable<T> results(ProductPath<?, T> path) {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }

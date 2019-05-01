@@ -28,23 +28,25 @@
 package uk.co.saiman.experiment;
 
 import static java.util.Objects.requireNonNull;
+import static uk.co.saiman.experiment.path.ExperimentPath.defineAbsolute;
 
 import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import uk.co.saiman.experiment.definition.ExperimentDefinition;
+import uk.co.saiman.experiment.definition.StepDefinition;
 import uk.co.saiman.experiment.event.ExperimentEvent;
 import uk.co.saiman.experiment.path.ExperimentPath;
 import uk.co.saiman.experiment.path.ExperimentPath.Absolute;
-import uk.co.saiman.experiment.procedure.Instruction;
-import uk.co.saiman.experiment.procedure.Procedure;
-import uk.co.saiman.experiment.procedure.Template;
-import uk.co.saiman.experiment.product.Nothing;
-import uk.co.saiman.experiment.schedule.Products;
+import uk.co.saiman.experiment.production.Nothing;
+import uk.co.saiman.experiment.production.Results;
 import uk.co.saiman.experiment.schedule.Schedule;
 import uk.co.saiman.experiment.schedule.Scheduler;
 import uk.co.saiman.experiment.storage.StorageConfiguration;
@@ -52,7 +54,7 @@ import uk.co.saiman.observable.HotObservable;
 import uk.co.saiman.observable.Observable;
 
 public class Experiment {
-  private Procedure procedure;
+  private ExperimentDefinition definition;
   private NavigableSet<ExperimentPath<Absolute>> enabled = new TreeSet<>();
 
   private final Scheduler scheduler;
@@ -61,40 +63,38 @@ public class Experiment {
 
   private final HotObservable<ExperimentEvent> events = new HotObservable<>();
 
-  public Experiment(Procedure procedure, StorageConfiguration<?> storageConfiguration) {
-    this.procedure = requireNonNull(procedure);
+  public Experiment(ExperimentDefinition procedure, StorageConfiguration<?> storageConfiguration) {
+    this.definition = requireNonNull(procedure);
     this.scheduler = new Scheduler(storageConfiguration);
   }
 
-  public Procedure getProcedure() {
-    return procedure;
+  public ExperimentDefinition getDefinition() {
+    return definition;
   }
 
   public Schedule getSchedule() {
     return scheduler.getSchedule().get();
   }
 
-  public Products getProducts() {
-    return scheduler.getProducts().get();
+  public Results getResults() {
+    return scheduler.getResults();
   }
 
   public String getId() {
-    return getSchedule().getProcedure().id();
+    return getSchedule().getScheduledProcedure().id();
   }
 
   public void setId(String id) {
     updateProcedure(p -> p.withId(id));
   }
 
-  private synchronized void updateProcedure(Function<Procedure, Procedure> modifier) {
-    updateProcedure(modifier.apply(this.procedure));
-  }
-
-  private synchronized boolean updateProcedure(Procedure newProcedure) {
-    boolean changed = !procedure.equals(newProcedure);
+  private synchronized boolean updateProcedure(
+      Function<ExperimentDefinition, ExperimentDefinition> modifier) {
+    var newProcedure = modifier.apply(definition);
+    boolean changed = !definition.equals(newProcedure);
     if (changed) {
-      procedure = newProcedure;
-      scheduler.schedule(procedure);
+      definition = newProcedure;
+      scheduler.schedule(definition.procedure());
     }
     return changed;
   }
@@ -107,29 +107,36 @@ public class Experiment {
     return events;
   }
 
-  public synchronized Step attach(Template<Nothing> step) {
+  public synchronized Step attach(StepDefinition<Nothing> step) {
+    List.of();
+    updateProcedure(p -> p.withStep(step));
 
-    // TODO
-
-    return null;
+    return getStep(ExperimentPath.defineAbsolute().resolve(step.id()));
   }
 
   public synchronized void close() {
 
   }
 
-  Instruction getInstruction(ExperimentPath<?> path) {
-    // TODO Auto-generated method stub
-    return null;
+  private Step getStep(ExperimentPath<Absolute> path) {
+    var reference = steps.get(path);
+    var step = reference == null ? null : reference.get();
+    if (step == null) {
+      step = new Step(this, definition.findStep(path).get().executor(), path.toAbsolute());
+      steps.put(path, new SoftReference<>(step));
+    }
+    return step;
   }
 
-  void updateInstruction(ExperimentPath<?> path, Instruction instruction) {
+  void updateInstruction(ExperimentPath<?> path, StepDefinition instruction) {
     // TODO Auto-generated method stub
 
   }
 
-  public Stream<Step> getSteps() {
-    // TODO Auto-generated method stub
-    return null;
+  public Stream<Step> getIndependentSteps() {
+    return definition
+        .independentSteps()
+        .map(step -> defineAbsolute().resolve(step.id()))
+        .map(this::getStep);
   }
 }

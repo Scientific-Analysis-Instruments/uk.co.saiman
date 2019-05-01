@@ -27,85 +27,40 @@
  */
 package uk.co.saiman.experiment.procedure;
 
-import static java.lang.String.format;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Optional;
+import java.util.stream.Stream;
 
-import java.util.Map;
-import java.util.NavigableMap;
-
-import uk.co.saiman.experiment.path.ExperimentPath.Absolute;
+import uk.co.saiman.experiment.instruction.Instruction;
 import uk.co.saiman.experiment.path.ExperimentPath;
-import uk.co.saiman.experiment.path.ProductPath;
-import uk.co.saiman.experiment.product.Nothing;
+import uk.co.saiman.experiment.path.ExperimentPath.Absolute;
 
-public class Procedure extends Instructions<Procedure, Absolute> {
+public class Procedure {
   private final String id;
+  private final LinkedHashMap<ExperimentPath<Absolute>, Instruction<?>> instructions;
 
-  private Procedure(String id) {
-    this.id = validateName(id);
-  }
-
-  private Procedure(
-      String id,
-      NavigableMap<ExperimentPath<Absolute>, ExperimentLocation> instructions,
-      Map<ProductPath<Absolute>, ProductLocation> dependencies) {
-    super(instructions, dependencies);
-    this.id = validateName(id);
-  }
-
-  public static Procedure define(String id) {
-    return new Procedure(id);
+  public Procedure(String id, Collection<? extends Instruction<?>> instructions) {
+    this.id = id;
+    this.instructions = new LinkedHashMap<>();
+    for (var instruction : instructions) {
+      this.instructions.put(instruction.path(), instruction);
+    }
   }
 
   public String id() {
     return id;
   }
 
-  public Procedure withId(String id) {
-    return new Procedure(id, getInstructions(), getDependencies());
+  public Stream<Instruction<?>> instructions() {
+    return instructions.values().stream();
   }
 
-  static String validateName(String name) {
-    if (!isNameValid(name)) {
-      throw new ProcedureException(format("Invalid name for experiment %s", name));
-    }
-    return name;
+  public Stream<ExperimentPath<Absolute>> paths() {
+    return instructions.keySet().stream();
   }
 
-  public static boolean isNameValid(String name) {
-    final String ALPHANUMERIC = "[a-zA-Z0-9]+";
-    final String DIVIDER_CHARACTERS = "[ \\.\\-_]+";
-
-    return name != null
-        && name.matches(ALPHANUMERIC + "(" + DIVIDER_CHARACTERS + ALPHANUMERIC + ")*");
-  }
-
-  @Override
-  protected Procedure withInstructions(
-      NavigableMap<ExperimentPath<Absolute>, ExperimentLocation> instructions,
-      Map<ProductPath<Absolute>, ProductLocation> dependencies) {
-    return new Procedure(id, instructions, dependencies);
-  }
-
-  public Procedure withInstruction(Instruction instruction) {
-    return withInstruction(-1, instruction);
-  }
-
-  @Override
-  Procedure withInstruction(long index, Instruction instruction) {
-    return super.withInstruction(index, instruction);
-  }
-
-  public Procedure withTemplate(Template<Nothing> template) {
-    return withTemplate(-1, template);
-  }
-
-  @Override
-  public Procedure withTemplate(long index, Template<Nothing> template) {
-    return super.withTemplate(index, template);
-  }
-
-  @Override
-  ExperimentPath<Absolute> getExperimentPath() {
-    return ExperimentPath.defineAbsolute();
+  public Optional<Instruction<?>> instruction(ExperimentPath<?> path) {
+    return Optional.ofNullable(instructions.get(path));
   }
 }
